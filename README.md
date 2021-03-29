@@ -39,7 +39,7 @@ def House.Door do
 end
 ```
 
-By defining this rules we get the function `Door.transit/2` to transit between states. This function returns either `{:ok, struct_with_new_state}` or `{:error, :not_allowed}`. Lets see this in practice:
+By defining this rules we get the function `Door.transit/2` to transit between states. This function returns either `{:ok, struct_with_new_state}` or `{:error, message}`. Lets see this in practice:
 
 By default our `Door` is `locked`
 
@@ -59,7 +59,7 @@ If we try to make a transition that not follow the rules, we get an error:
 
 ```elixir
 iex> House.Door.transit(door, event: "close")
-{:error, :not_allowed}
+{:error, "can't transit from unlocked to closed"}
 ```
 
 ### Setting different field name that holds the state
