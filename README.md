@@ -74,7 +74,7 @@ iex> Door.transit(door, event: "lock")
 {:error, :not_allowed}
 ```
 
-### Setting different field name that holds the state
+### Setting different attribute name that holds the state
 
 By default `machinist` expects the struct being updated holds a `state` key, if you hold state in a different attribute, just pass the name as an atom, as follows:
 
