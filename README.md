@@ -1,6 +1,6 @@
 # Machinist
 
-This  is a small library that allows you to implement finite state machines with Elixir in a simple way. It provides a simple DSL for declaring combinations of transitions based on events.
+This  is a small library that allows you to implement finite state machines with Elixir in a simple way. It provides a simple DSL to write combinations of transitions based on events.
 
 * [Installation](#Installation)
 * [Usage](#Usage)
@@ -23,7 +23,7 @@ end
 A good example is how we would implement the behaviour of a door. With `machinist` would be this way:
 
 ```elixir
-def House.Door do
+defmodule Door do
   defstruct [state: :locked]
 
   use Machinist
@@ -39,32 +39,44 @@ def House.Door do
 end
 ```
 
-By defining this rules we get the function `Door.transit/2` to transit between states. This function returns either `{:ok, struct_with_new_state}` or `{:error, message}`. Lets see this in practice:
+By defining this rules with `from` macro `machinist` generates and inject into the module `Door`, `transit/2` functions like this one:
+
+```elixir
+def transit(%Door{state: :locked} = struct, event: "unlock") do
+  {:ok, %Door{struct | state: :locked}}
+end
+```
+
+So that we can transit between states by relying on the **state** + **event** pattern matching.
+
+Let's see this in practice:
 
 By default our `Door` is `locked`
 
 ```elixir
-iex> door = %House.Door{}
+iex> door = %Door{}
 %Door{state: :locked}
 ```
 
-So lets change its state to `unlocked`
+So let's change its state to `unlocked` and `opened`
 
 ```elixir
-iex> {:ok, door} = House.Door.transit(door, event: "unlock")
+iex> {:ok, door} = Door.transit(door, event: "unlock")
 {:ok, %Door{state: :unlocked}}
+iex> {:ok, door} = Door.transit(door, event: "open")
+{:ok, %Door{state: :opened}}
 ```
 
-If we try to make a transition that not follow the rules, we get an error:
+If we try to make a transition that not follow the rules, we got an error:
 
 ```elixir
-iex> House.Door.transit(door, event: "close")
-{:error, "can't transit from unlocked to closed"}
+iex> Door.transit(door, event: "lock")
+{:error, :not_allowed}
 ```
 
 ### Setting different field name that holds the state
 
-By default `machinist` expects the struct or map passed as the first argument has the key `state`, if you hold state in a different field, just pass the name as an atom, as follow:
+By default `machinist` expects the struct being updated holds a `state` key, if you hold state in a different attribute, just pass the name as an atom, as follows:
 
 ```elixir
 transitions field: :door_state do
@@ -72,10 +84,10 @@ transitions field: :door_state do
 end
 ```
 
-And then `machinist` will set state in that field
+And then `machinist` will set state in that attribute
 
 ```elixir
-iex> House.Door.transit(door, event: "unlock")
+iex> Door.transit(door, event: "unlock")
 {:ok, %Door{door_state: :unlocked}}
 ```
 
@@ -89,7 +101,7 @@ And a Selection Process **V2** with these ones: [Registration] -> [**Interview**
 
 The difference here is in **V1** candidates must take a **Code Test** and V2 an **Interview**.
 
-So, we could have a `%Candidate{}` struct that holds these fields:
+So, we could have a `%Candidate{}` struct that holds these attributes:
 
 ```elixir
 defmodule SelectionProcess.Candidate do
@@ -107,32 +119,38 @@ defmodule SelectionProcess.V1 do
 
   @minimum_score 100
 
-  transitions do
+  transitions Candidate do
     from :new,           to: :registered,    event: "register"
     from :registered,    to: :started_test,  event: "start_test"
     from :started_test,  to: &check_score/1, event: "send_test"
-    from :test_approved, to: :enrolled,      event: "enroll"
+    from :approved,      to: :enrolled,      event: "enroll"
   end
 
   defp check_score(%Candidate{test_score: score}) do
-    if score >= @minimum_score, do: :test_approved, else: :test_reproved
+    if score >= @minimum_score, do: :approved, else: :reproved
   end
 end
 ```
 
-Also notice we can pass a *function* to the option `to:` instead of an *atom*, in order to decide the state based on the candidate `test_score` value.
+In this code we pass the `Candidate` module as a parameter to `transitions` to tell `machinist` that we expect `V1.transit/2` functions with a `%Candidate{}` struct as first argument and not the `%SelectionProcess.V1{}` which would be by default.
 
-Internally  `machinist` calls the func by providing the same first parameter of `transit/2` function.
+```elixir
+def transit(%Candidate{state: :new} = struct, event: "register") do
+  {:ok, %Candidate{struct | state: :registered}}
+end
+```
 
-In the **version 2**, we replaced the `Code Test` stage by the `Interview` that has some states.
+Also notice we provided the *function* `&check_score/1` to the option `to:` instead of an *atom*, in order to decide the state based on the candidate `test_score` value.
+
+In the **version 2**, we replaced the `Code Test` stage by the `Interview` which has different state transitions:
 
 ```elixir
 defmodule SelectionProcess.V2 do
   use Machinist
 
-  alias __MODULE__.Candidate
+  alias SelectionProcess.Candidate
 
-  transitions do
+  transitions Candidate do
     from :new,                 to: :registered,          event: "register"
     from :registered,          to: :interview_scheduled, event: "schedule_interview"
     from :interview_scheduled, to: :approved,            event: "approve_interview"
@@ -142,7 +160,7 @@ defmodule SelectionProcess.V2 do
 end
 ```
 
-Now lets see how this could be used:
+Now let's see how this could be used:
 
 **V1:** A `registered` candidate wants to start its test.
 
@@ -163,3 +181,62 @@ iex> SelectionProcess.V2.transit(candidate1, event: "schedule_interview")
 That's great because we also can implement many state machines for only one entity and test different scenarios, evaluate and collect data for deciding which one is better.
 
 `machinist` gives us this flexibility since it's just pure Elixir.
+
+## How does `from` macro works?
+
+As said earlier each statement of `from` macro will be tranformed in a function that will be injected into the module that is using `machinist`.
+
+This implementation:
+
+```elixir
+defmodule Door do
+  defstruct state: :locked
+
+  use Machinist
+
+  transitions do
+    from :locked,   to: :unlocked, event: "unlock"
+    from :unlocked, to: :locked,   event: "lock"
+    from :unlocked, to: :opened,   event: "open"
+    from :opened,   to: :closed,   event: "close"
+    from :closed,   to: :opened,   event: "open"
+    from :closed,   to: :locked,   event: "lock"
+  end
+end
+```
+
+is the same as:
+
+```elixir
+defmodule Door do
+  defstruct state: :locked
+
+  def transit(%__MODULE__{state: :locked} = struct, event: "unlock") do
+    {:ok, %__MODULE__{struct | state: :unlocked}}
+  end
+
+  def transit(%__MODULE__{state: :unlocked} = struct, event: "lock") do
+    {:ok, %__MODULE__{struct | state: :locked}}
+  end
+
+  def transit(%__MODULE__{state: :unlocked} = struct, event: "open") do
+    {:ok, %__MODULE__{struct | state: :opened}}
+  end
+
+  def transit(%__MODULE__{state: :opened} = struct, event: "close") do
+    {:ok, %__MODULE__{struct | state: :closed}}
+  end
+
+  def transit(%__MODULE__{state: :closed} = struct, event: "open") do
+    {:ok, %__MODULE__{struct | state: :opened}}
+  end
+
+  def transit(%__MODULE__{state: :closed} = struct, event: "lock") do
+    {:ok, %__MODULE__{struct | state: :locked}}
+  end
+  # a catchall function in case of umatched combinations
+  def transit(_, _), do: {:error, :not_allowed}
+end
+```
+
+So, as we can see, we can eliminate a lot of boilerplate with `machinist` making it easier to maintain and less prone to errors.
