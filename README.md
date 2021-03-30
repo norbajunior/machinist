@@ -173,7 +173,7 @@ iex> SelectionProcess.V1.transit(candidate1, event: "start_test")
 **V2:** A `registered` candidate wants to schedule the interview
 
 ```elixir
-iex> candidate2 = %Candidate{name: "John Doe", state: :registered}
+iex> candidate2 = %Candidate{name: "Jose", state: :registered}
 iex> SelectionProcess.V2.transit(candidate1, event: "schedule_interview")
 %{:ok, %Candidate{state: :interview_scheduled}}
 ```
@@ -182,9 +182,9 @@ That's great because we also can implement many state machines for only one enti
 
 `machinist` gives us this flexibility since it's just pure Elixir.
 
-## How does `from` macro works?
+## How does the DSL works?
 
-As said earlier each statement of `from` macro will be tranformed in a function that will be injected into the module that is using `machinist`.
+The use of `transitions` in combination with each `from` statement will be tranformed in functions that will be injected into the module that is using `machinist`.
 
 This implementation:
 
