@@ -234,7 +234,7 @@ defmodule Door do
   def transit(%__MODULE__{state: :closed} = struct, event: "lock") do
     {:ok, %__MODULE__{struct | state: :locked}}
   end
-  # a catchall function in case of umatched combinations
+  # a catchall function in case of unmatched clauses
   def transit(_, _), do: {:error, :not_allowed}
 end
 ```
