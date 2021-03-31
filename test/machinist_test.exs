@@ -22,13 +22,13 @@ defmodule MachinistTest do
     end
   end
 
-  describe "an example with custom state field" do
+  describe "an example with custom state attribute" do
     defmodule Example2 do
       defstruct step: 1
 
       use Machinist
 
-      transitions field: :step do
+      transitions attr: :step do
         from(1, to: 2, event: "next")
         from(2, to: 3, event: "next")
       end
@@ -111,7 +111,7 @@ defmodule MachinistTest do
     defmodule Example4 do
       use Machinist
 
-      transitions User, field: :step do
+      transitions User, attr: :step do
         from(1, to: 2, event: "next")
       end
     end
