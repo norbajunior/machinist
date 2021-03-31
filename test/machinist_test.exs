@@ -103,7 +103,7 @@ defmodule MachinistTest do
     end
   end
 
-  describe "an example a module handling a different struct with custom state attr" do
+  describe "an example of a module handling a different struct with custom state attr" do
     defmodule User do
       defstruct step: 1
     end
