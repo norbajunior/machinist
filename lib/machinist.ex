@@ -26,18 +26,18 @@ defmodule Machinist do
     end
   end
 
-  defmacro transitions(struct, [field: field], do: block) do
+  defmacro transitions(struct, [attr: attr], do: block) do
     quote do
-      @__attr__ unquote(field)
+      @__attr__ unquote(attr)
       @__struct__ unquote(struct)
 
       unquote(block)
     end
   end
 
-  defmacro transitions([field: field], do: block) do
+  defmacro transitions([attr: attr], do: block) do
     quote do
-      @__attr__ unquote(field)
+      @__attr__ unquote(attr)
       @__struct__ __MODULE__
 
       unquote(block)
