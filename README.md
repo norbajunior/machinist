@@ -63,7 +63,7 @@ So let's change its state to `unlocked` and `opened`
 ```elixir
 iex> {:ok, door_unlocked} = Door.transit(door_locked, event: "unlock")
 {:ok, %Door{state: :unlocked}}
-iex> {:ok, door} = Door.transit(door_unlocked, event: "open")
+iex> {:ok, door_opened} = Door.transit(door_unlocked, event: "open")
 {:ok, %Door{state: :opened}}
 ```
 
