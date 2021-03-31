@@ -39,7 +39,7 @@ defmodule Door do
 end
 ```
 
-By defining this rules with `from` macro `machinist` generates and inject into the module `Door`, `transit/2` functions like this one:
+By defining this rules `machinist` generates and inject into the module `Door`, `transit/2` functions like this one:
 
 ```elixir
 def transit(%Door{state: :locked} = struct, event: "unlock") do
