@@ -184,7 +184,7 @@ That's great because we also can implement many state machines for only one enti
 
 ## How does the DSL works?
 
-The use of `transitions` in combination with each `from` statement will be tranformed in functions that will be injected into the module that is using `machinist`.
+The use of `transitions` in combination with each `from` statement will be transformed in functions that will be injected into the module that is using `machinist`.
 
 This implementation:
 
