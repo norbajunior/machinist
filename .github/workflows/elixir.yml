@@ -10,22 +10,48 @@ jobs:
   build:
 
     name: Build and test
-    runs-on: ubuntu-latest
-
+    runs-on: ubuntu-16.04
+    env:
+      MIX_ENV: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - pair:
+              elixir: 1.6.6
+              otp: 19.3.6.13
+          - pair:
+              elixir: 1.11.4
+              otp: 23.3
+            lint: lint
     steps:
     - uses: actions/checkout@v2
+
     - name: Set up Elixir
-      uses: erlef/setup-elixir@885971a72ed1f9240973bd92ab57af8c1aa68f24
+      uses: erlef/setup-elixir@v1
       with:
-        elixir-version: '1.11.4' # Define the elixir version [required]
-        otp-version: '23.3' # Define the OTP version [required]
+        otp-version: ${{matrix.pair.otp}}
+        elixir-version: ${{matrix.pair.elixir}}
+
     - name: Restore dependencies cache
       uses: actions/cache@v2
       with:
         path: deps
         key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
         restore-keys: ${{ runner.os }}-mix-
-    - name: Install dependencies
-      run: mix deps.get
-    - name: Run tests
-      run: mix test
+
+    - name: Install Dependencies
+      run: mix deps.get --only test
+
+    - run: mix format --check-formatted
+      if: ${{ matrix.lint }}
+
+    - run: mix deps.get && mix deps.unlock --check-unused
+      if: ${{ matrix.lint }}
+
+    - run: mix deps.compile
+
+    - run: mix compile --warnings-as-errors
+      if: ${{ matrix.lint }}
+
+    - run: mix test
