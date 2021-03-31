@@ -54,23 +54,23 @@ Let's see this in practice:
 By default our `Door` is `locked`
 
 ```elixir
-iex> door = %Door{}
+iex> door_locked = %Door{}
 %Door{state: :locked}
 ```
 
 So let's change its state to `unlocked` and `opened`
 
 ```elixir
-iex> {:ok, door} = Door.transit(door, event: "unlock")
+iex> {:ok, door_unlocked} = Door.transit(door_locked, event: "unlock")
 {:ok, %Door{state: :unlocked}}
-iex> {:ok, door} = Door.transit(door, event: "open")
+iex> {:ok, door} = Door.transit(door_unlocked, event: "open")
 {:ok, %Door{state: :opened}}
 ```
 
 If we try to make a transition that not follow the rules, we got an error:
 
 ```elixir
-iex> Door.transit(door, event: "lock")
+iex> Door.transit(door_opened, event: "lock")
 {:error, :not_allowed}
 ```
 
