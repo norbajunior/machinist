@@ -1,6 +1,7 @@
 defmodule Machinist.MixProject do
   use Mix.Project
 
+  @version "0.2.0"
   @repo_url "https://github.com/norbajunior/machinist"
 
   def project do
@@ -14,7 +15,16 @@ defmodule Machinist.MixProject do
 
       # Hex
       package: package(),
-      description: "A tiny Elixir lib to write state machines"
+
+      # Docs
+      name: "Machinist",
+      description: "A tiny Elixir lib to write state machines",
+      docs: [
+        extras: ["README.md"],
+        main: "readme",
+        source_ref: "v#{@version}",
+        source_url: @repo_url
+      ]
     ]
   end
 
