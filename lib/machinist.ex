@@ -2,6 +2,20 @@ defmodule Machinist do
   @moduledoc """
   `Machinist` is a small library that allows you to implement finite state machines with Elixir in a simple way. It provides a simple DSL to write combinations of transitions based on events.
 
+  ## Installation
+
+  You can install `machinist` by adding it  to your list of dependencies in `mix.exs`:
+
+  ```elixir
+  def deps do
+    [
+      {:machinist, "~> 0.2.0"}
+    ]
+  end
+  ```
+
+  ## Usage
+
   A good example is how we would implement the behaviour of a door. With `machinist` would be this way:
 
   ```elixir
