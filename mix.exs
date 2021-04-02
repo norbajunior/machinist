@@ -21,7 +21,7 @@ defmodule Machinist.MixProject do
       description: "A tiny Elixir lib to write state machines",
       docs: [
         extras: ["README.md"],
-        main: "readme",
+        main: "Machinist",
         source_ref: "v#{@version}",
         source_url: @repo_url
       ]
