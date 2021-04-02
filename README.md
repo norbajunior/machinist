@@ -48,6 +48,7 @@ def transit(%Door{state: :locked} = struct, event: "unlock") do
   {:ok, %Door{struct | state: :locked}}
 end
 ```
+_The functions `transit/2` implements the behaviour_ [`Machinist.Transition`](https://github.com/norbajunior/machinist/blob/main/lib/machinist/transition.ex#L2)
 
 So that we can transit between states by relying on the **state** + **event** pattern matching.
 
