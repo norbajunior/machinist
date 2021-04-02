@@ -43,6 +43,8 @@ defmodule Machinist do
   end
   ```
 
+  _The functions `transit/2` implements the behaviour_ `Machinist.Transition`
+
   So that we can transit between states by relying on the **state** + **event** pattern matching.
 
   Let's see this in practice:
