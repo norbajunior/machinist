@@ -1,13 +1,12 @@
 # Machinist
 
-[![Hex.pm Version](https://img.shields.io/hexpm/v/machinist.svg)](https://hex.pm/packages/machinist)
-[![CI](https://github.com/norbajunior/machinist/actions/workflows/ci.yml/badge.svg)](https://github.com/norbajunior/machinist/actions/workflows/ci.yml)
+[![CI](https://github.com/norbajunior/machinist/actions/workflows/ci.yml/badge.svg)](https://github.com/norbajunior/machinist/actions/workflows/ci.yml)]
+[![Hex.pm Version](https://img.shields.io/hexpm/v/machinist?color=blueviolet)](https://hex.pm/packages/machinist)]
 
 This  is a small library that allows you to implement finite state machines with Elixir in a simple way. It provides a simple DSL to write combinations of transitions based on events.
 
 * [Installation](#Installation)
 * [Usage](#Usage)
-* [Documentation](https://hexdocs.pm/machinist)
 
 ## Installation
 
