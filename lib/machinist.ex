@@ -1,6 +1,8 @@
 defmodule Machinist do
   @moduledoc """
-  `Machinist` is a small library that allows you to implement finite state machines with Elixir in a simple way. It provides a simple DSL to write combinations of transitions based on events.
+  `Machinist` is a small library that allows you to implement finite state machines
+  with Elixir in a simple way. It provides a simple DSL to write combinations of
+  transitions based on events.
 
   ## Installation
 
@@ -74,7 +76,8 @@ defmodule Machinist do
 
   ### Setting different attribute name that holds the state
 
-  By default `machinist` expects the struct being updated holds a `state` attribute, if you hold state in a different attribute, just pass the name as an atom, as follows:
+  By default `machinist` expects the struct being updated holds a `state` attribute,
+  if you hold state in a different attribute, just pass the name as an atom, as follows:
 
   ```elixir
   transitions attr: :door_state do
@@ -91,7 +94,8 @@ defmodule Machinist do
 
   ### Implementing different versions of a state machine
 
-  Let's suppose we want to build a selection process app that handles applications of candidates and they may possibly going through different versions of the process. For example:
+  Let's suppose we want to build a selection process app that handles applications
+  of candidates and they may possibly going through different versions of the process. For example:
 
   A Selection Process **V1** with the following sequence of stages: [Registration] -> [**Code test**] -> [Enrollment]
 
@@ -107,7 +111,11 @@ defmodule Machinist do
   end
   ```
 
-  And a `SelectionProcess` module that implements the state machine. Notice this time we don't want to implement the rules in the module that holds the state, in this case it makes more sense the `SelectionProcess` keep the rules, also because we want more than one state machine version handling candidates as mentioned before. This is our **V1** of the process:
+  And a `SelectionProcess` module that implements the state machine.
+  Notice this time we don't want to implement the rules in the module that holds
+  the state, in this case it makes more sense the `SelectionProcess` keep the rules,
+  also because we want more than one state machine version handling candidates as mentioned before.
+  This is our **V1** of the process:
 
   ```elixir
   defmodule SelectionProcess.V1 do
@@ -130,7 +138,9 @@ defmodule Machinist do
   end
   ```
 
-  In this code we pass the `Candidate` module as a parameter to `transitions` to tell `machinist` that we expect `V1.transit/2` functions with a `%Candidate{}` struct as first argument and not the `%SelectionProcess.V1{}` which would be by default.
+  In this code we pass the `Candidate` module as a parameter to `transitions`
+  to tell `machinist` that we expect `V1.transit/2` functions with a `%Candidate{}`
+  struct as first argument and not the `%SelectionProcess.V1{}` which would be by default.
 
   ```elixir
   def transit(%Candidate{state: :new} = struct, event: "register") do
@@ -176,13 +186,15 @@ defmodule Machinist do
   %{:ok, %Candidate{state: :interview_scheduled}}
   ```
 
-  That's great because we also can implement many state machines for only one entity and test different scenarios, evaluate and collect data for deciding which one is better.
+  That's great because we also can implement many state machines for only one
+  entity and test different scenarios, evaluate and collect data for deciding which one is better.
 
   `machinist` gives us this flexibility since it's just pure Elixir.
 
   ## How does the DSL works?
 
-  The use of `transitions` in combination with each `from` statement will be transformed in functions that will be injected into the module that is using `machinist`.
+  The use of `transitions` in combination with each `from` statement will be
+  transformed in functions that will be injected into the module that is using `machinist`.
 
   This implementation:
 
@@ -237,7 +249,8 @@ defmodule Machinist do
   end
   ```
 
-  So, as we can see, we can eliminate a lot of boilerplate with `machinist` making it easier to maintain and less prone to errors.
+  So, as we can see, we can eliminate a lot of boilerplate with `machinist` making
+  it easier to maintain and less prone to errors.
   """
 
   @doc false
@@ -256,7 +269,8 @@ defmodule Machinist do
   @doc """
   Defines a block of transitions.
 
-  By default `transitions/1` expects the module using `Machinist` has a struct defined with a `state` attribute
+  By default `transitions/1` expects the module using `Machinist` has a struct
+  defined with a `state` attribute
 
       transitions do
         # ...
@@ -271,7 +285,8 @@ defmodule Machinist do
   end
 
   @doc """
-  Defines a block of transitions for a specific struct or defines a block of transitions just passing the `attr` option to define the attribute holding the state
+  Defines a block of transitions for a specific struct or defines a block of
+  transitions just passing the `attr` option to define the attribute holding the state
 
   ## Examples
 
@@ -346,16 +361,14 @@ defmodule Machinist do
   end
 
   @doc """
-  Defines a state transition with the given `current_state`, and the list of options `[to: new_state, event: event]`
+  Defines a state transition with the given `state`, and the list of options `[to: new_state, event: event]`
 
       from 1, to: 2, event: "next"
   """
-  defmacro from(current_state, to: new_state, event: event) do
+  defmacro from(state, to: new_state, event: event) do
     quote do
       @impl true
-      def transit(%@__struct__{@__attr__ => unquote(current_state)} = resource,
-            event: unquote(event)
-          ) do
+      def transit(%@__struct__{@__attr__ => unquote(state)} = resource, event: unquote(event)) do
         value = __set_new_state__(resource, unquote(new_state))
 
         {:ok, Map.put(resource, @__attr__, value)}
@@ -371,8 +384,7 @@ defmodule Machinist do
         {:error, :not_allowed}
       end
 
-      defp __set_new_state__(resource, new_state)
-           when is_function(new_state) do
+      defp __set_new_state__(resource, new_state) when is_function(new_state) do
         new_state.(resource)
       end
 
