@@ -1,5 +1,7 @@
 # Machinist
 
+[![CI](https://github.com/norbajunior/machinist/actions/workflows/ci.yml/badge.svg)](https://github.com/norbajunior/machinist/actions/workflows/ci.yml)
+
 This  is a small library that allows you to implement finite state machines with Elixir in a simple way. It provides a simple DSL to write combinations of transitions based on events.
 
 * [Installation](#Installation)
