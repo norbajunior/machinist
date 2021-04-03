@@ -243,3 +243,11 @@ end
 ```
 
 So, as we can see, we can eliminate a lot of boilerplate with `machinist` making it easier to maintain and less prone to errors.
+
+## Contributing
+
+Feel free to contribute to this lib. If you have any suggestions or bug reports just open an issue or a PR.
+
+## License
+
+[MIT License](https://github.com/norbajunior/machinist/blob/main/LICENSE)
