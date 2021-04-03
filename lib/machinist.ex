@@ -41,15 +41,15 @@ defmodule Machinist do
   So let's change its state to `unlocked` and `opened`
 
       iex> {:ok, door_unlocked} = Door.transit(door_locked, event: "unlock")
-      {:ok, %Door{state: :unlocked}}
+      iex> {:ok, %Door{state: :unlocked}}
       iex> {:ok, door_opened} = Door.transit(door_unlocked, event: "open")
-      {:ok, %Door{state: :opened}}
+      iex> {:ok, %Door{state: :opened}}
 
   If we try to make a transition that not follow the rules, we got an error:
 
 
       iex> Door.transit(door_opened, event: "lock")
-      {:error, :not_allowed}
+      iex> {:error, :not_allowed}
 
   ### Setting different attribute name that holds the state
 
