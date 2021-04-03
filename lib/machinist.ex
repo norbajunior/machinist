@@ -253,7 +253,7 @@ defmodule Machinist do
   ### A Candidate being handled by two different versions of a SelectionProcess
 
       defmodule Candidate do
-        defstruct state: "new"
+        defstruct state: :new
       end
 
       defmodule SelectionProcess.V1 do
@@ -275,7 +275,7 @@ defmodule Machinist do
   ### Providing the `attr` option to define the attribute holding the state
 
       defmodule Candidate do
-        defstruct candidate_state: "new"
+        defstruct candidate_state: :new
 
         use Machinist
 
