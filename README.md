@@ -185,6 +185,26 @@ That's great because we also can implement many state machines for only one enti
 
 `machinist` gives us this flexibility since it's just pure Elixir.
 
+### Transiting from any state to another
+
+Sometimes we need to define a `from` _any state_ transition.
+
+Let's suppose a candidate has abandoned the process in a given state and we want to be
+able to transit him/her to `application_expired` from any state. To do so we just define a `from` with an underscore variable to be ignored in place of a real state value.
+
+```elixir
+defmodule SelectionProcess.V2 do
+  use Machinist
+
+  alias SelectionProcess.Candidate
+
+  transitions Candidate do
+    # ...
+    from _state, to: :application_expired, event: "application_expired"
+  end
+end
+```
+
 ## How does the DSL works?
 
 The use of `transitions` in combination with each `from` statement will be transformed in functions that will be injected into the module that is using `machinist`.
