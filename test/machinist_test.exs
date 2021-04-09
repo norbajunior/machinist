@@ -121,4 +121,35 @@ defmodule MachinistTest do
       {:error, :not_allowed} = Example4.transit(user_step2, event: "next")
     end
   end
+
+  describe "an example of a transition from any state to a specific one" do
+    defmodule Example5 do
+      defstruct state: :new
+
+      use Machinist
+
+      transitions do
+        from(:new, to: :registered, event: "register")
+        from(:registered, to: :interview_scheduled, event: "schedule_interview")
+        from(:interview_scheduled, to: :approved, event: "approve_interview")
+        from(:interview_scheduled, to: :repproved, event: "reprove_interview")
+        from(:approved, to: :enrolled, event: "enroll")
+        from(_state, to: :application_expired, event: "application_expired")
+      end
+    end
+
+    test "all transitions" do
+      {:ok, %Example5{state: :application_expired}} =
+        Example5.transit(%Example5{state: :new}, event: "application_expired")
+
+      {:ok, %Example5{state: :application_expired}} =
+        Example5.transit(%Example5{state: :registered}, event: "application_expired")
+
+      {:ok, %Example5{state: :application_expired}} =
+        Example5.transit(%Example5{state: :interview_scheduled}, event: "application_expired")
+
+      {:ok, %Example5{state: :application_expired}} =
+        Example5.transit(%Example5{state: :approved}, event: "application_expired")
+    end
+  end
 end

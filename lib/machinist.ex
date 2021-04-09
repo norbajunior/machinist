@@ -155,6 +155,24 @@ defmodule Machinist do
 
   `machinist` gives us this flexibility since it's just pure Elixir.
 
+  ### Transiting from any state to a specific one
+
+  Sometimes we need to define a `from` _any state_ transition to a specific one.
+
+  Let's suppose a candidate has abandoned the process in a given state and we want to be
+  able to transit the candidate to `application_expired` state from any state. To do so we just define a `from` with an underscore variable to be ignored in place of a real state value.
+
+      defmodule SelectionProcess.V2 do
+        use Machinist
+
+        alias SelectionProcess.Candidate
+
+        transitions Candidate do
+          # ...
+          from _state, to: :application_expired, event: "application_expired"
+        end
+      end
+
   ## How does the DSL works?
 
   The use of `transitions` in combination with each `from` statement will be
@@ -324,6 +342,10 @@ defmodule Machinist do
   Defines a state transition with the given `state`, and the list of options `[to: new_state, event: event]`
 
       from 1, to: 2, event: "next"
+
+  It's also possible to define a `from` any state transition to another specific one, by just passing an underscore variable in place of a real state value
+
+      from _state, to: :expired, event: "enrollment_expired"
   """
   defmacro from(state, to: new_state, event: event) do
     quote do
