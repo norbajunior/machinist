@@ -155,12 +155,12 @@ defmodule Machinist do
 
   `machinist` gives us this flexibility since it's just pure Elixir.
 
-  ### Transiting from any state to a specific one
+  ### Transiting from any state to another
 
-  Sometimes we need to define a `from` _any state_ transition to a specific one.
+  Sometimes we need to define a `from` _any state_ transition.
 
   Let's suppose a candidate has abandoned the process in a given state and we want to be
-  able to transit the candidate to `application_expired` state from any state. To do so we just define a `from` with an underscore variable to be ignored in place of a real state value.
+  able to transit him/her to `application_expired` from any state. To do so we just define a `from` with an underscore variable to be ignored in place of a real state value.
 
       defmodule SelectionProcess.V2 do
         use Machinist
