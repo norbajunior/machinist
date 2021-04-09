@@ -189,8 +189,7 @@ That's great because we also can implement many state machines for only one enti
 
 Sometimes we need to define a `from` _any state_ transition.
 
-Let's suppose a candidate has abandoned the process in a given state and we want to be
-able to transit him/her to `application_expired` from any state. To do so we just define a `from` with an underscore variable to be ignored in place of a real state value.
+Still in the selection process example, a candidate can abandon the process in a given state and we want to be able to transit him/her to `application_expired` from any state. To do so we just define a `from` with an underscore variable in order the current state to be ignored.
 
 ```elixir
 defmodule SelectionProcess.V2 do
