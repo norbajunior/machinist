@@ -24,7 +24,7 @@ defmodule Machinist do
   By defining this rules with `transitions` and `from` macros, `machinist` generates and inject into the module `Door` `transit/2` functions like this one:
 
       def transit(%Door{state: :locked} = struct, event: "unlock") do
-        {:ok, %Door{struct | state: :locked}}
+        {:ok, %Door{struct | state: :unlocked}}
       end
 
   _The functions `transit/2` implements the behaviour_ `Machinist.Transition`
