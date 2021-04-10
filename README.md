@@ -45,7 +45,7 @@ By defining this rules with `transitions` and `from` macros, `machinist` generat
 
 ```elixir
 def transit(%Door{state: :locked} = struct, event: "unlock") do
-  {:ok, %Door{struct | state: :locked}}
+  {:ok, %Door{struct | state: :unlocked}}
 end
 ```
 _The functions `transit/2` implements the behaviour_ [`Machinist.Transition`](https://github.com/norbajunior/machinist/blob/main/lib/machinist/transition.ex#L2)
