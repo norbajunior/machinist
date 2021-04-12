@@ -1,13 +1,13 @@
 defmodule Machinist.MixProject do
   use Mix.Project
 
-  @version "0.2.0"
+  @version "0.3.0"
   @repo_url "https://github.com/norbajunior/machinist"
 
   def project do
     [
       app: :machinist,
-      version: "0.2.0",
+      version: "0.3.0",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
