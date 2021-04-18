@@ -131,8 +131,12 @@ defmodule MachinistTest do
       transitions do
         from(:new, to: :registered, event: "register")
         from(:registered, to: :interview_scheduled, event: "schedule_interview")
-        from(:interview_scheduled, to: :approved, event: "approve_interview")
-        from(:interview_scheduled, to: :repproved, event: "reprove_interview")
+
+        from :interview_scheduled do
+          to(:approved, event: "approve_interview")
+          to(:repproved, event: "reprove_interview")
+        end
+
         from(:approved, to: :enrolled, event: "enroll")
         from(_state, to: :application_expired, event: "application_expired")
       end
@@ -150,6 +154,31 @@ defmodule MachinistTest do
 
       {:ok, %Example5{state: :application_expired}} =
         Example5.transit(%Example5{state: :approved}, event: "application_expired")
+    end
+  end
+
+  describe "a example with passing a block of transitions to from" do
+    defmodule Example6 do
+      defstruct state: :test
+
+      use Machinist
+
+      transitions do
+        from(:test, to: :test1, event: "test1")
+
+        from :test1 do
+          to(:test2, event: "test2")
+          to(:test3, event: "test3")
+          to(:test4, event: "test4")
+        end
+      end
+    end
+
+    test "all transitions" do
+      assert {:ok, example} = Example6.transit(%Example6{}, event: "test1")
+      assert {:ok, %Example6{state: :test2}} = Example6.transit(example, event: "test2")
+      assert {:ok, %Example6{state: :test3}} = Example6.transit(example, event: "test3")
+      assert {:ok, %Example6{state: :test4}} = Example6.transit(example, event: "test4")
     end
   end
 end
