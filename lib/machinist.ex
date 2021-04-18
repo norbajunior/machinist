@@ -68,7 +68,7 @@ defmodule Machinist do
       end
       # ...
 
-  This is an option to a better organization and an increase of readability when having
+  This is an option for a better organization and an increase of readability when having
   a large number of `from` definitions with a same state.
 
   ### Setting different attribute name that holds the state
