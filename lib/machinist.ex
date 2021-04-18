@@ -51,6 +51,26 @@ defmodule Machinist do
       iex> Door.transit(door_opened, event: "lock")
       iex> {:error, :not_allowed}
 
+  ### Group same-state `from` definitions
+
+  In the example above we also could group the `from :unlocked` definitions like this:
+
+      # ...
+      transitions do
+        from :locked,   to: :unlocked, event: "unlock"
+        from :unlocked do
+          to :locked, event: "lock"
+          to :opened, event: "open"
+        end
+        from :opened,   to: :closed,   event: "close"
+        from :closed,   to: :opened,   event: "open"
+        from :closed,   to: :locked,   event: "lock"
+      end
+      # ...
+
+  This is an option to a better organization and an increase of readability when having
+  a large number of `from` definitions with a same state.
+
   ### Setting different attribute name that holds the state
 
   By default `machinist` expects the struct being updated holds a `state` attribute,
@@ -346,7 +366,27 @@ defmodule Machinist do
 
       from _state, to: :expired, event: "enrollment_expired"
   """
+  defmacro from(state, do: {_, _line, to_statements}) do
+    define_transitions(state, to_statements)
+  end
+
   defmacro from(state, to: new_state, event: event) do
+    define_transition(state, to: new_state, event: event)
+  end
+
+  @doc false
+  defp define_transitions(_state, []), do: []
+
+  @doc false
+  defp define_transitions(state, [{:to, _line, [new_state, [event: event]]} | transitions]) do
+    [
+      define_transition(state, to: new_state, event: event)
+      | define_transitions(state, transitions)
+    ]
+  end
+
+  @doc false
+  defp define_transition(state, to: new_state, event: event) do
     quote do
       @impl true
       def transit(%@__struct__{@__attr__ => unquote(state)} = resource, event: unquote(event)) do

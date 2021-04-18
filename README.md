@@ -15,7 +15,7 @@ You can install `machinist` by adding it  to your list of dependencies in `mix.e
 ```elixir
 def deps do
   [
-    {:machinist, "~> 0.3.0"}
+    {:machinist, "~> 0.4.0"}
   ]
 end
 ```
@@ -76,6 +76,28 @@ If we try to make a transition that not follow the rules, we got an error:
 iex> Door.transit(door_opened, event: "lock")
 {:error, :not_allowed}
 ```
+
+### Group same-state `from` definitions
+
+In the example above we could group the `from :unlocked` definitions like this:
+
+```elixir
+# ...
+transitions do
+  from :locked, to: :unlocked, event: "unlock"
+  from :unlocked do
+    to :locked, event: "lock"
+    to :opened, event: "open"
+  end
+  from :opened, to: :closed,   event: "close"
+  from :closed, to: :opened,   event: "open"
+  from :closed, to: :locked,   event: "lock"
+end
+# ...
+```
+
+This is an option to a better organization and an increase of readability when having
+a large number of `from` definitions with a same state.
 
 ### Setting different attribute name that holds the state
 
