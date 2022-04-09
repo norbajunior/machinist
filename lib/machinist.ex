@@ -405,11 +405,13 @@ defmodule Machinist do
         {:error, :not_allowed}
       end
 
-      defp __set_new_state__(resource, new_state) when is_function(new_state) do
-        new_state.(resource)
+      defp __set_new_state__(resource, new_state) do
+        if is_function(new_state) do
+          new_state.(resource)
+        else
+          new_state
+        end
       end
-
-      defp __set_new_state__(_, new_state), do: new_state
     end
   end
 end
