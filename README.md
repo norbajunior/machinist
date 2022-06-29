@@ -225,6 +225,21 @@ defmodule SelectionProcess.V2 do
 end
 ```
 
+## Introspection
+
+To get the list of states of our state machine module, just call:
+
+```elixir
+iex> SelectionProcess.V2.__states__()
+[:new, :registered, :interview_scheduled, :approved, :reproved, :enrolled]
+```
+
+To get the list of events:
+
+```elixir
+iex> SelectionProcess.V2.__events__()
+["register", "schedule_interview", "approve_interview", "reprove_interview", "enroll"]
+
 ## How does the DSL works?
 
 The use of `transitions` in combination with each `from` statement will be transformed in functions that will be injected into the module that is using `machinist`.
