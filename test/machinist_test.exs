@@ -20,6 +20,14 @@ defmodule MachinistTest do
 
       assert {:error, :not_allowed} = Example1.transit(step_3, event: "next")
     end
+
+    test "__states__/0" do
+      assert Example1.__states__() == [1, 2, 3]
+    end
+
+    test "__events__/0" do
+      assert Example1.__events__() == ~w(next)
+    end
   end
 
   describe "an example with custom state attribute" do
@@ -39,6 +47,14 @@ defmodule MachinistTest do
       assert {:ok, %Example2{step: 3} = step_3} = Example2.transit(step_2, event: "next")
 
       assert {:error, :not_allowed} = Example2.transit(step_3, event: "next")
+    end
+
+    test "__states__/0" do
+      assert Example2.__states__() == [1, 2, 3]
+    end
+
+    test "__events__/0" do
+      assert Example2.__events__() == ~w(next)
     end
   end
 
@@ -101,6 +117,16 @@ defmodule MachinistTest do
       {:error, :not_allowed} = SelectionProcess.V2.transit(enrolled_candidate, event: "enroll")
       {:error, :not_allowed} = SelectionProcess.V2.transit(enrolled_candidate, event: "register")
     end
+
+    test "__states__/0" do
+      assert SelectionProcess.V1.__states__() == ~w(new registered enrolled)a
+      assert SelectionProcess.V2.__states__() == ~w(new registered interviewed enrolled)a
+    end
+
+    test "__events__/0" do
+      assert SelectionProcess.V1.__events__() == ~w(register enroll)
+      assert SelectionProcess.V2.__events__() == ~w(register interviewed enroll)
+    end
   end
 
   describe "an example of a module handling a different struct with custom state attr" do
@@ -120,6 +146,14 @@ defmodule MachinistTest do
       {:ok, %User{step: 2} = user_step2} = Example4.transit(%User{}, event: "next")
       {:error, :not_allowed} = Example4.transit(user_step2, event: "next")
     end
+
+    test "__states__/0" do
+      assert Example4.__states__() == [1, 2]
+    end
+
+    test "__events__/0" do
+      assert Example4.__events__() == ~w(next)
+    end
   end
 
   describe "an example of a transition from any state to a specific one" do
@@ -134,7 +168,7 @@ defmodule MachinistTest do
 
         from :interview_scheduled do
           to(:approved, event: "approve_interview")
-          to(:repproved, event: "reprove_interview")
+          to(:reproved, event: "reprove_interview")
         end
 
         from(:approved, to: :enrolled, event: "enroll")
@@ -154,6 +188,16 @@ defmodule MachinistTest do
 
       {:ok, %Example5{state: :application_expired}} =
         Example5.transit(%Example5{state: :approved}, event: "application_expired")
+    end
+
+    test "__states__/0" do
+      assert Example5.__states__() ==
+               ~w(new registered interview_scheduled approved reproved enrolled)a
+    end
+
+    test "__events__/0" do
+      assert Example5.__events__() ==
+               ~w(register schedule_interview approve_interview reprove_interview enroll application_expired)
     end
   end
 
@@ -179,6 +223,14 @@ defmodule MachinistTest do
       assert {:ok, %Example6{state: :test2}} = Example6.transit(example, event: "test2")
       assert {:ok, %Example6{state: :test3}} = Example6.transit(example, event: "test3")
       assert {:ok, %Example6{state: :test4}} = Example6.transit(example, event: "test4")
+    end
+
+    test "__states__/0" do
+      assert Example6.__states__() == ~w(test test1 test2 test3 test4)a
+    end
+
+    test "__events__/0" do
+      assert Example6.__events__() == ~w(test1 test2 test3 test4)
     end
   end
 end
