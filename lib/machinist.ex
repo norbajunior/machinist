@@ -192,6 +192,30 @@ defmodule Machinist do
         end
       end
 
+  ## Introspection
+
+  To get the list of states, just call:
+
+
+      iex> SelectionProcess.V2.__states__()
+      [:new, :registered, :interview_scheduled, :approved, :reproved, :enrolled]
+
+  To get the list of events:
+
+      iex> SelectionProcess.V2.__events__()
+      ["register", "schedule_interview", "approve_interview", "reprove_interview", "enroll"]
+
+  To get the list of all transitions:
+
+      iex> SelectionProcess.V2.__transitions__()
+      [
+        [from: :new, to: :registered, event: "register"],
+        [from: :registered, to: :interview_scheduled, event: "schedule_interview"],
+        [from: :interview_scheduled, to: :approved, event: "approve_interview"],
+        [from: :interview_scheduled, to: :repproved, event: "reprove_interview"],
+        [from: :approved, to: :enrolled, event: "enroll"]
+      ]
+
   ## How does the DSL works?
 
   The use of `transitions` in combination with each `from` statement will be
@@ -253,6 +277,10 @@ defmodule Machinist do
   @doc false
   defmacro __using__(_) do
     quote do
+      Module.register_attribute(__MODULE__, :__states__, accumulate: true, persist: false)
+      Module.register_attribute(__MODULE__, :__events__, accumulate: true, persist: false)
+      Module.register_attribute(__MODULE__, :__transitions__, accumulate: true, persist: false)
+
       @__attr__ :state
 
       @behaviour Machinist.Transition
@@ -367,27 +395,35 @@ defmodule Machinist do
       from _state, to: :expired, event: "enrollment_expired"
   """
   defmacro from(state, do: {_, _line, to_statements}) do
-    define_transitions(state, to_statements)
+    deftransitions(state, to_statements)
   end
 
   defmacro from(state, to: new_state, event: event) do
-    define_transition(state, to: new_state, event: event)
+    deftransition(state, to: new_state, event: event)
   end
 
   @doc false
-  defp define_transitions(_state, []), do: []
+  defp deftransitions(_state, []), do: []
 
   @doc false
-  defp define_transitions(state, [{:to, _line, [new_state, [event: event]]} | transitions]) do
+  defp deftransitions(state, [{:to, _line, [new_state, [event: event]]} | transitions]) do
     [
-      define_transition(state, to: new_state, event: event)
-      | define_transitions(state, transitions)
+      deftransition(state, to: new_state, event: event)
+      | deftransitions(state, transitions)
     ]
   end
 
   @doc false
-  defp define_transition(state, to: new_state, event: event) do
+  defp deftransition(state, to: new_state, event: event) do
+    ast_states = accumulate_attribute_states(state, new_state)
+    ast_events = accumulate_attribute_events(event)
+    ast_transitions = accumulate_attribute_transitions(state, new_state, event)
+
     quote do
+      unquote(ast_states)
+      unquote(ast_events)
+      unquote(ast_transitions)
+
       @impl true
       def transit(%@__struct__{@__attr__ => unquote(state)} = resource, event: unquote(event)) do
         value = __set_new_state__(resource, unquote(new_state))
@@ -397,12 +433,63 @@ defmodule Machinist do
     end
   end
 
+  defp accumulate_attribute_transitions(state, new_state, event) do
+    if not unused_var?(state) do
+      quote bind_quoted: [state: state, new_state: new_state, event: event] do
+        @__transitions__ [from: state, to: new_state, event: event]
+      end
+    else
+      quote bind_quoted: [new_state: new_state, event: event] do
+        @__transitions__ [from: :any, to: new_state, event: event]
+      end
+    end
+  end
+
+  defp accumulate_attribute_states(state, new_state) do
+    if not unused_var?(state) do
+      quote bind_quoted: [state: state, new_state: new_state] do
+        if state not in @__states__ do
+          @__states__ state
+        end
+
+        if new_state not in @__states__ do
+          @__states__ new_state
+        end
+      end
+    end
+  end
+
+  defp accumulate_attribute_events(event) do
+    quote bind_quoted: [event: event] do
+      if event not in @__events__ do
+        @__events__ event
+      end
+    end
+  end
+
+  defp unused_var?(state), do: match?({_, _, nil}, state)
+
   @doc false
   defmacro __before_compile__(_) do
     quote do
       @impl true
       def transit(_resource, _opts) do
         {:error, :not_allowed}
+      end
+
+      def __states__, do: Enum.reverse(@__states__)
+      def __events__, do: Enum.reverse(@__events__)
+
+      def __transitions__ do
+        Enum.reduce(@__transitions__, [], fn
+          transition, acc ->
+            if Keyword.get(transition, :from) == :any do
+              result = for state <- __states__(), do: Keyword.put(transition, :from, state)
+              result ++ acc
+            else
+              [transition | acc]
+            end
+        end)
       end
 
       defp __set_new_state__(resource, new_state) do
