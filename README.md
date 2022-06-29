@@ -15,7 +15,7 @@ You can install `machinist` by adding it  to your list of dependencies in `mix.e
 ```elixir
 def deps do
   [
-    {:machinist, "~> 0.4.1"}
+    {:machinist, "~> 0.5.2"}
   ]
 end
 ```
