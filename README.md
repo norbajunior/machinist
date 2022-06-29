@@ -227,7 +227,7 @@ end
 
 ## Introspection
 
-To get the list of states of our state machine module, just call:
+To get the list of states, just call:
 
 ```elixir
 iex> SelectionProcess.V2.__states__()
@@ -239,6 +239,20 @@ To get the list of events:
 ```elixir
 iex> SelectionProcess.V2.__events__()
 ["register", "schedule_interview", "approve_interview", "reprove_interview", "enroll"]
+```
+
+To get the list of all transitions:
+
+```elixir
+iex>  SelectionProcess.V2.__transitions__()
+[
+  [from: :new, to: :registered, event: "register"],
+  [from: :registered, to: :interview_scheduled, event: "schedule_interview"],
+  [from: :interview_scheduled, to: :approved, event: "approve_interview"],
+  [from: :interview_scheduled, to: :repproved, event: "reprove_interview"],
+  [from: :approved, to: :enrolled, event: "enroll"]
+]
+```
 
 ## How does the DSL works?
 

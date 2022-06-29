@@ -28,6 +28,13 @@ defmodule MachinistTest do
     test "__events__/0" do
       assert Example1.__events__() == ~w(next)
     end
+
+    test "__transitions__/0" do
+      assert Example1.__transitions__() == [
+               [from: 1, to: 2, event: "next"],
+               [from: 2, to: 3, event: "next"]
+             ]
+    end
   end
 
   describe "an example with custom state attribute" do
@@ -55,6 +62,13 @@ defmodule MachinistTest do
 
     test "__events__/0" do
       assert Example2.__events__() == ~w(next)
+    end
+
+    test "__transitions__/0" do
+      assert Example2.__transitions__() == [
+               [from: 1, to: 2, event: "next"],
+               [from: 2, to: 3, event: "next"]
+             ]
     end
   end
 
@@ -127,6 +141,19 @@ defmodule MachinistTest do
       assert SelectionProcess.V1.__events__() == ~w(register enroll)
       assert SelectionProcess.V2.__events__() == ~w(register interviewed enroll)
     end
+
+    test "__transitions__/0" do
+      assert SelectionProcess.V1.__transitions__() == [
+               [from: :new, to: :registered, event: "register"],
+               [from: :registered, to: :enrolled, event: "enroll"]
+             ]
+
+      assert SelectionProcess.V2.__transitions__() == [
+               [from: :new, to: :registered, event: "register"],
+               [from: :registered, to: :interviewed, event: "interviewed"],
+               [from: :interviewed, to: :enrolled, event: "enroll"]
+             ]
+    end
   end
 
   describe "an example of a module handling a different struct with custom state attr" do
@@ -153,6 +180,10 @@ defmodule MachinistTest do
 
     test "__events__/0" do
       assert Example4.__events__() == ~w(next)
+    end
+
+    test "__transitions__/0" do
+      assert Example4.__transitions__() == [[from: 1, to: 2, event: "next"]]
     end
   end
 
@@ -199,6 +230,26 @@ defmodule MachinistTest do
       assert Example5.__events__() ==
                ~w(register schedule_interview approve_interview reprove_interview enroll application_expired)
     end
+
+    test "__transitions__/0" do
+      assert Example5.__transitions__() == [
+               [from: :new, to: :registered, event: "register"],
+               [from: :registered, to: :interview_scheduled, event: "schedule_interview"],
+               [from: :interview_scheduled, to: :approved, event: "approve_interview"],
+               [from: :interview_scheduled, to: :reproved, event: "reprove_interview"],
+               [from: :approved, to: :enrolled, event: "enroll"],
+               [from: :new, to: :application_expired, event: "application_expired"],
+               [from: :registered, to: :application_expired, event: "application_expired"],
+               [
+                 from: :interview_scheduled,
+                 to: :application_expired,
+                 event: "application_expired"
+               ],
+               [from: :approved, to: :application_expired, event: "application_expired"],
+               [from: :reproved, to: :application_expired, event: "application_expired"],
+               [from: :enrolled, to: :application_expired, event: "application_expired"]
+             ]
+    end
   end
 
   describe "a example with passing a block of transitions to from" do
@@ -219,6 +270,7 @@ defmodule MachinistTest do
     end
 
     test "all transitions" do
+      IO.inspect(Example6.__transitions__())
       assert {:ok, example} = Example6.transit(%Example6{}, event: "test1")
       assert {:ok, %Example6{state: :test2}} = Example6.transit(example, event: "test2")
       assert {:ok, %Example6{state: :test3}} = Example6.transit(example, event: "test3")
@@ -231,6 +283,15 @@ defmodule MachinistTest do
 
     test "__events__/0" do
       assert Example6.__events__() == ~w(test1 test2 test3 test4)
+    end
+
+    test "__transitions__/0" do
+      assert Example6.__transitions__() == [
+               [from: :test, to: :test1, event: "test1"],
+               [from: :test1, to: :test2, event: "test2"],
+               [from: :test1, to: :test3, event: "test3"],
+               [from: :test1, to: :test4, event: "test4"]
+             ]
     end
   end
 end

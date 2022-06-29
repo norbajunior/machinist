@@ -194,18 +194,27 @@ defmodule Machinist do
 
   ## Introspection
 
-  To get the list of states of our state machine, just call:
+  To get the list of states, just call:
 
-  ```elixir
-  iex> SelectionProcess.V2.__states__()
-  [:new, :registered, :interview_scheduled, :approved, :reproved, :enrolled]
-  ```
+
+      iex> SelectionProcess.V2.__states__()
+      [:new, :registered, :interview_scheduled, :approved, :reproved, :enrolled]
 
   To get the list of events:
 
-  ```elixir
-  iex> SelectionProcess.V2.__events__()
-  ["register", "schedule_interview", "approve_interview", "reprove_interview", "enroll"]
+      iex> SelectionProcess.V2.__events__()
+      ["register", "schedule_interview", "approve_interview", "reprove_interview", "enroll"]
+
+  To get the list of all transitions:
+
+      iex> SelectionProcess.V2.__transitions__()
+      [
+        [from: :new, to: :registered, event: "register"],
+        [from: :registered, to: :interview_scheduled, event: "schedule_interview"],
+        [from: :interview_scheduled, to: :approved, event: "approve_interview"],
+        [from: :interview_scheduled, to: :repproved, event: "reprove_interview"],
+        [from: :approved, to: :enrolled, event: "enroll"]
+      ]
 
   ## How does the DSL works?
 
@@ -270,6 +279,7 @@ defmodule Machinist do
     quote do
       Module.register_attribute(__MODULE__, :__states__, accumulate: true, persist: false)
       Module.register_attribute(__MODULE__, :__events__, accumulate: true, persist: false)
+      Module.register_attribute(__MODULE__, :__transitions__, accumulate: true, persist: false)
 
       @__attr__ :state
 
@@ -407,16 +417,30 @@ defmodule Machinist do
   defp deftransition(state, to: new_state, event: event) do
     ast_states = accumulate_attribute_states(state, new_state)
     ast_events = accumulate_attribute_events(event)
+    ast_transitions = accumulate_attribute_transitions(state, new_state, event)
 
     quote do
       unquote(ast_states)
       unquote(ast_events)
+      unquote(ast_transitions)
 
       @impl true
       def transit(%@__struct__{@__attr__ => unquote(state)} = resource, event: unquote(event)) do
         value = __set_new_state__(resource, unquote(new_state))
 
         {:ok, Map.put(resource, @__attr__, value)}
+      end
+    end
+  end
+
+  defp accumulate_attribute_transitions(state, new_state, event) do
+    if not unused_var?(state) do
+      quote bind_quoted: [state: state, new_state: new_state, event: event] do
+        @__transitions__ [from: state, to: new_state, event: event]
+      end
+    else
+      quote bind_quoted: [new_state: new_state, event: event] do
+        @__transitions__ [from: :any, to: new_state, event: event]
       end
     end
   end
@@ -455,6 +479,18 @@ defmodule Machinist do
 
       def __states__, do: Enum.reverse(@__states__)
       def __events__, do: Enum.reverse(@__events__)
+
+      def __transitions__ do
+        Enum.reduce(@__transitions__, [], fn
+          transition, acc ->
+            if Keyword.get(transition, :from) == :any do
+              result = for state <- __states__(), do: Keyword.put(transition, :from, state)
+              result ++ acc
+            else
+              [transition | acc]
+            end
+        end)
+      end
 
       defp __set_new_state__(resource, new_state) do
         if is_function(new_state) do
