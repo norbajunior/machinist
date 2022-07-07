@@ -3,7 +3,9 @@
 [![CI](https://github.com/norbajunior/machinist/actions/workflows/ci.yml/badge.svg)](https://github.com/norbajunior/machinist/actions/workflows/ci.yml)
 [![Hex.pm Version](https://img.shields.io/hexpm/v/machinist?color=blueviolet)](https://hex.pm/packages/machinist)
 
-This  is a small library that allows you to implement finite state machines with Elixir in a simple way. It provides a simple DSL to write combinations of transitions based on events.
+This is a small library that allows you to implement finite state machines
+with Elixir in a simple way. It provides a simple DSL to write combinations of
+transitions based on events.
 
 * [Installation](#Installation)
 * [Usage](#Usage)
@@ -22,7 +24,10 @@ end
 
 ## Usage
 
-A good example is how we would implement the behaviour of a door. With `machinist` would be this way:
+<!-- MDOC -->
+
+A good example is how we would implement the behaviour of a door. With
+`machinist` would be this way:
 
 ```elixir
 defmodule Door do
@@ -41,7 +46,9 @@ defmodule Door do
 end
 ```
 
-By defining this rules with `transitions` and `from` macros, `machinist` generates and inject into the module `Door` `transit/2` functions like this one:
+By defining this rules with `transitions` and `from` macros, `machinist`
+generates and inject into the module `Door` `transit/2` functions like this
+one:
 
 ```elixir
 def transit(%Door{state: :locked} = struct, event: "unlock") do
@@ -49,18 +56,21 @@ def transit(%Door{state: :locked} = struct, event: "unlock") do
 end
 ```
 
-So that we can transit between states by relying on the **state** + **event** pattern matching.
+_The functions `transit/2` implements the behaviour_ `Machinist.Transition`
+
+So that we can transit between states by relying on the **state** + **event**
+pattern matching.
 
 Let's see this in practice:
 
-By default our `Door` is `locked`
+By default our `Door` is `locked`:
 
 ```elixir
 iex> door_locked = %Door{}
 %Door{state: :locked}
 ```
 
-So let's change its state to `unlocked` and `opened`
+So let's change its state to `unlocked` and `opened`:
 
 ```elixir
 iex> {:ok, door_unlocked} = Door.transit(door_locked, event: "unlock")
@@ -100,7 +110,9 @@ a large number of `from` definitions with a same state.
 
 ### Setting different attribute name that holds the state
 
-By default `machinist` expects the struct being updated holds a `state` attribute, if you hold state in a different attribute, just pass the name as an atom, as follows:
+By default `machinist` expects the struct being updated holds a `state`
+attribute, if you hold state in a different attribute, just pass the name as an
+atom, as follows:
 
 ```elixir
 transitions attr: :door_state do
@@ -117,13 +129,18 @@ iex> Door.transit(door, event: "unlock")
 
 ### Implementing different versions of a state machine
 
-Let's suppose we want to build a selection process app that handles applications of candidates and they may possibly going through different versions of the process. For example:
+Let's suppose we want to build a selection process app that handles
+applications of candidates and they may possibly going through different
+versions of the process. For example:
 
-A Selection Process **V1** with the following sequence of stages: [Registration] -> [**Code test**] -> [Enrollment]
+A Selection Process **V1** with the following sequence of stages:
+[Registration] -> [**Code test**] -> [Enrollment]
 
-And a Selection Process **V2** with these ones: [Registration] -> [**Interview**] -> [Enrollment]
+And a Selection Process **V2** with these ones: [Registration] ->
+[**Interview**] -> [Enrollment]
 
-The difference here is in **V1** candidates must take a **Code Test** and V2 an **Interview**.
+The difference here is in **V1** candidates must take a **Code Test** and V2 an
+**Interview**.
 
 So, we could have a `%Candidate{}` struct that holds these attributes:
 
@@ -133,7 +150,11 @@ defmodule SelectionProcess.Candidate do
 end
 ```
 
-And a `SelectionProcess` module that implements the state machine. Notice this time we don't want to implement the rules in the module that holds the state, in this case it makes more sense the `SelectionProcess` keep the rules, also because we want more than one state machine version handling candidates as mentioned before. This is our **V1** of the process:
+And a `SelectionProcess` module that implements the state machine. Notice this
+time we don't want to implement the rules in the module that holds the state,
+in this case it makes more sense the `SelectionProcess` keep the rules, also
+because we want more than one state machine version handling candidates as
+mentioned before. This is our **V1** of the process:
 
 ```elixir
 defmodule SelectionProcess.V1 do
@@ -156,7 +177,10 @@ defmodule SelectionProcess.V1 do
 end
 ```
 
-In this code we pass the `Candidate` module as a parameter to `transitions` to tell `machinist` that we expect `V1.transit/2` functions with a `%Candidate{}` struct as first argument and not the `%SelectionProcess.V1{}` which would be by default.
+In this code we pass the `Candidate` module as a parameter to `transitions` to
+tell `machinist` that we expect `V1.transit/2` functions with a `%Candidate{}`
+struct as first argument and not the `%SelectionProcess.V1{}` which would be by
+default.
 
 ```elixir
 def transit(%Candidate{state: :new} = struct, event: "register") do
@@ -164,9 +188,12 @@ def transit(%Candidate{state: :new} = struct, event: "register") do
 end
 ```
 
-Also notice we provided the *function* `&check_score/1` to the option `to:` instead of an *atom*, in order to decide the state based on the candidate `test_score` value.
+Also notice we provided the *function* `&check_score/1` to the option `to:`
+instead of an *atom*, in order to decide the state based on the candidate
+`test_score` value.
 
-In the **version 2**, we replaced the `Code Test` stage by the `Interview` which has different state transitions:
+In the **version 2**, we replaced the `Code Test` stage by the `Interview`
+which has different state transitions:
 
 ```elixir
 defmodule SelectionProcess.V2 do
@@ -202,7 +229,9 @@ iex> SelectionProcess.V2.transit(candidate1, event: "schedule_interview")
 %{:ok, %Candidate{state: :interview_scheduled}}
 ```
 
-That's great because we also can implement many state machines for only one entity and test different scenarios, evaluate and collect data for deciding which one is better.
+That's great because we also can implement many state machines for only one
+entity and test different scenarios, evaluate and collect data for deciding
+which one is better.
 
 `machinist` gives us this flexibility since it's just pure Elixir.
 
@@ -210,7 +239,10 @@ That's great because we also can implement many state machines for only one enti
 
 Sometimes we need to define a `from` _any state_ transition.
 
-Still in the selection process example, a candidate can abandon the process in a given state and we want to be able to transit him/her to `application_expired` from any state. To do so we just define a `from` with an underscore variable in order the current state to be ignored.
+Still in the selection process example, a candidate can abandon the process in
+a given state and we want to be able to transit him/her to
+`application_expired` from any state. To do so we just define a `from` with an
+underscore variable in order the current state to be ignored.
 
 ```elixir
 defmodule SelectionProcess.V2 do
@@ -227,7 +259,9 @@ end
 
 ## How does the DSL works?
 
-The use of `transitions` in combination with each `from` statement will be transformed in functions that will be injected into the module that is using `machinist`.
+The use of `transitions` in combination with each `from` statement will be
+transformed in functions that will be injected into the module that is using
+`machinist`.
 
 This implementation:
 
@@ -248,7 +282,7 @@ defmodule Door do
 end
 ```
 
-is the same as:
+Is the same as:
 
 ```elixir
 defmodule Door do
@@ -282,11 +316,15 @@ defmodule Door do
 end
 ```
 
-So, as we can see, we can eliminate a lot of boilerplate with `machinist` making it easier to maintain and less prone to errors.
+So, as we can see, we can eliminate a lot of boilerplate with `machinist`
+making it easier to maintain and less prone to errors.
+
+<!-- MDOC -->
 
 ## Contributing
 
-Feel free to contribute to this lib. If you have any suggestions or bug reports just open an issue or a PR.
+Feel free to contribute to this lib. If you have any suggestions or bug reports
+just open an issue or a PR.
 
 ## License
 
