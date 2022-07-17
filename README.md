@@ -335,5 +335,5 @@ just open an issue or a PR.
 If this project help you reduce time to develop, you can give me a cup of coffee :)
 
 <a href="https://www.paypal.com/donate/?hosted_button_id=LVPBU9CT3Z7DN" target="_blank">
-  <img src="donate-btn.svg" height="40">
+  <img src="assets/donate-btn.svg" height="40">
 </a>
