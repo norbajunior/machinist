@@ -56,8 +56,6 @@ def transit(%Door{state: :locked} = struct, event: "unlock") do
 end
 ```
 
-_The functions `transit/2` implements the behaviour_ `Machinist.Transition`
-
 So that we can transit between states by relying on the **state** + **event**
 pattern matching.
 
@@ -86,27 +84,41 @@ iex> Door.transit(door_opened, event: "lock")
 {:error, :not_allowed}
 ```
 
-### Group same-state `from` definitions
-
-In the example above we could group the `from :unlocked` definitions like this:
-
-```elixir
-# ...
-transitions do
-  from :locked, to: :unlocked, event: "unlock"
-  from :unlocked do
-    to :locked, event: "lock"
-    to :opened, event: "open"
-  end
-  from :opened, to: :closed,   event: "close"
-  from :closed, to: :opened,   event: "open"
-  from :closed, to: :locked,   event: "lock"
-end
-# ...
-```
-
 This is an option for a better organization and an increase of readability when having
 a large number of `from` definitions with a same state.
+
+## Guard conditions
+
+We could be implementing a state machine to a eletronic door, and we have the need to validate the passcode before unlock it. In this scenario we have a condition to transit the state by having to check whether the passcode is valid or not on the `unlock` event. Below is a graph representing it:
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> locked
+    state if_state <<choice>>
+    locked --> if_state : unlock
+    if_state --> locked : false
+    if_state --> unlocked : true
+```
+
+To have this condition on our state machine we should use the `event` macro passing a `guard` function:
+
+```elixir
+# ..
+transitions do
+  event "unlock", guard: &check_passcode/1 do
+    from :locked, to: :unlocked
+    from :locked, to: :locked
+  end
+end
+
+defp check_passcode(door) do
+  if some_condition, do: :unlocked, else: :locked
+end
+```
+
+And now calling `Door.transit(%Door{state: :locked}, event: "unlock")` the guard function `check_passcode/1`
+will be called and will return the new state to be set.
 
 ### Setting different attribute name that holds the state
 
@@ -167,8 +179,13 @@ defmodule SelectionProcess.V1 do
   transitions Candidate do
     from :new,           to: :registered,    event: "register"
     from :registered,    to: :started_test,  event: "start_test"
-    from :started_test,  to: &check_score/1, event: "send_test"
-    from :approved,      to: :enrolled,      event: "enroll"
+
+    event "send_test", guard: &check_score/1 do
+      from :started_test, to: :approved
+      from :started_test, to: :reroved
+    end
+
+    from :approved, to: :enrolled, event: "enroll"
   end
 
   defp check_score(%Candidate{test_score: score}) do
