@@ -134,7 +134,7 @@ defmodule MachinistTest do
 
         from :interview_scheduled do
           to(:approved, event: "approve_interview")
-          to(:repproved, event: "reprove_interview")
+          to(:reproved, event: "reprove_interview")
         end
 
         from(:approved, to: :enrolled, event: "enroll")
@@ -179,6 +179,110 @@ defmodule MachinistTest do
       assert {:ok, %Example6{state: :test2}} = Example6.transit(example, event: "test2")
       assert {:ok, %Example6{state: :test3}} = Example6.transit(example, event: "test3")
       assert {:ok, %Example6{state: :test4}} = Example6.transit(example, event: "test4")
+    end
+  end
+
+  describe "an example of an event block" do
+    defmodule Example7 do
+      defstruct status: nil, state: :new
+
+      use Machinist
+
+      transitions do
+        from(:new, to: :form, event: "start")
+
+        event "form_submitted" do
+          from(:form, to: :form2)
+          from(:form2, to: :tests_in_progress)
+        end
+
+        event "update_test_score", guard: &check_status/1 do
+          from(:tests_in_progress, to: :tests_in_progress)
+          from(:tests_in_progress, to: :tests_reproved)
+          from(:tests_in_progress, to: :tests_approved)
+        end
+      end
+
+      defp check_status(%Example7{status: :approved}) do
+        :tests_approved
+      end
+
+      defp check_status(%Example7{status: :reproved}) do
+        :tests_reproved
+      end
+
+      defp check_status(%Example7{status: :in_progress}) do
+        :tests_in_progress
+      end
+    end
+
+    test "transits from new to form" do
+      assert {:ok, %Example7{state: :form}} =
+               Example7.transit(%Example7{}, event: "start")
+    end
+
+    test "transits from form to form2" do
+      assert {:ok, %Example7{state: :form2}} =
+               Example7.transit(%Example7{state: :form}, event: "form_submitted")
+    end
+
+    test "transits from test_in_progress to approved" do
+      example = %Example7{state: :tests_in_progress, status: :approved}
+
+      assert {:ok, %Example7{state: :tests_approved}} =
+               Example7.transit(example, event: "update_test_score")
+    end
+
+    test "transits from test_in_progress to reproved" do
+      example = %Example7{state: :tests_in_progress, status: :reproved}
+
+      assert {:ok, %Example7{state: :tests_reproved}} =
+               Example7.transit(example, event: "update_test_score")
+    end
+
+    test "transits from test_in_progress to test_in_progress" do
+      example = %Example7{state: :tests_in_progress, status: :in_progress}
+
+      assert {:ok, %Example7{state: :tests_in_progress}} =
+               Example7.transit(example, event: "update_test_score")
+    end
+  end
+
+  describe "an example of a from block within an event block" do
+    @error_message """
+
+    \e[0m`event` block can't support `from` blocks inside
+
+    Instead of this:
+
+    from(:tests_approved) do
+      to(:interview_1)
+      to(:interview_2)\nend
+
+    Do this:
+
+    from(:tests_approved, to: interview_1)
+    from(:tests_approved, to: interview_2)
+
+    """
+
+    test "raises an error when using this deprecated form" do
+      assert_raise Machinist.NoLongerSupportedSyntaxError, @error_message, fn ->
+        defmodule Example8 do
+          defstruct status: nil, state: :tests_in_progress
+
+          use Machinist
+
+          transitions do
+            event "start_interview", guard: &which_interview/1 do
+              from :tests_approved do
+                to(:interview_1)
+                to(:interview_2)
+              end
+            end
+          end
+        end
+      end
     end
   end
 end

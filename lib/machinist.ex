@@ -116,6 +116,52 @@ defmodule Machinist do
     end
   end
 
+  defmacro event(event, [guard: func], do: {:__block__, line, content}) do
+    content = prepare_transitions(event, func, content)
+
+    quote bind_quoted: [content: content, line: line] do
+      {:__block__, line, content}
+    end
+  end
+
+  defmacro event(_event, _f, do: {:from, _line, [_from, [do: _block]]} = content) do
+    raise Machinist.NoLongerSupportedSyntaxError, content
+  end
+
+  defmacro event(event, do: {:__block__, line, content}) do
+    content = prepare_transitions(event, content)
+
+    quote bind_quoted: [content: content, line: line] do
+      {:__block__, line, content}
+    end
+  end
+
+  defmacro event(event, do: content) do
+    content = prepare_transition(event, content)
+
+    quote bind_quoted: [content: content] do
+      [do: content]
+    end
+  end
+
+  defp prepare_transitions(_event, []), do: []
+
+  defp prepare_transitions(event, [head | tail]) do
+    [prepare_transition(event, head) | prepare_transitions(event, tail)]
+  end
+
+  defp prepare_transitions(event, guard_func, [head | _]) do
+    prepare_transition(event, guard_func, head)
+  end
+
+  defp prepare_transition(event, {:from, line, [from, to]}) do
+    {:from, line, [from, to ++ [event: event]]}
+  end
+
+  defp prepare_transition(event, guard_func, {:from, line, [from, _to]}) do
+    {:from, line, [from, [to: guard_func, event: event]]}
+  end
+
   @doc """
   Defines a state transition with the given `state`, and the list of options `[to: new_state, event: event]`
 
@@ -172,5 +218,35 @@ defmodule Machinist do
         end
       end
     end
+  end
+end
+
+defmodule Machinist.NoLongerSupportedSyntaxError do
+  defexception [:message]
+
+  @impl true
+  def exception({:from, _line, [from, [do: block]]} = content) do
+    {:__block__, _line, to_statements} = block
+
+    recommended =
+      for {_, _line, to} <- to_statements do
+        "from(:#{from}, to: #{List.first(to)})\n"
+      end
+
+    msg =
+      """
+
+      #{IO.ANSI.reset()}`event` block can't support `from` blocks inside
+
+      Instead of this:
+
+      #{Macro.to_string(content)}
+
+      Do this:
+
+      #{recommended}
+      """
+
+    %__MODULE__{message: msg}
   end
 end
