@@ -89,7 +89,7 @@ a large number of `from` definitions with a same state.
 
 ## Guard conditions
 
-We could be implementing a state machine to a eletronic door, and we have the need to validate the passcode before unlock it. In this scenario we have a condition to transit the state by having to check whether the passcode is valid or not on the `unlock` event. Below is a graph representing it:
+We could be implementing a state machine to an eletronic door, and we have the need to validate the passcode before unlock it. In this scenario we have a condition to transit the state by having to check whether the passcode is valid or not on the `unlock` event. Below is a graph representing it:
 
 ```mermaid
 stateDiagram-v2
