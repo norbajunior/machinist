@@ -89,7 +89,7 @@ a large number of `from` definitions with a same state.
 
 ## Guard conditions
 
-We could be implementing a state machine to an eletronic door, and we have the need to validate the passcode before unlock it. In this scenario we have a condition to transit the state by having to check whether the passcode is valid or not on the `unlock` event. Below is a graph representing it:
+We could be implementing a state machine to an eletronic door, and we have the need to validate the passcode to unlock it. In this scenario we have a condition to go to the next state depending  whether the passcode is valid or not. Follow the graph below representing it:
 
 ```mermaid
 stateDiagram-v2
@@ -101,7 +101,7 @@ stateDiagram-v2
     if_state --> unlocked : true
 ```
 
-To have this condition on our state machine we should use the `event` macro passing a `guard` function:
+In order to have this condition to the `unlock` event use the `event` macro passing the `guard` option with a function to evaluate it:
 
 ```elixir
 # ..
@@ -117,10 +117,10 @@ defp check_passcode(door) do
 end
 ```
 
-And now calling `Door.transit(%Door{state: :locked}, event: "unlock")` the guard function `check_passcode/1`
+So when we call `Door.transit(%Door{state: :locked}, event: "unlock")` the guard function `check_passcode/1`
 will be called and will return the new state to be set.
 
-### Setting different attribute name that holds the state
+### Setting a different attribute name that holds the state
 
 By default `machinist` expects the struct being updated holds a `state`
 attribute, if you hold state in a different attribute, just pass the name as an
