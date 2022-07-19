@@ -91,15 +91,7 @@ a large number of `from` definitions with a same state.
 
 We could be implementing a state machine to an eletronic door, and we have the need to validate the passcode to unlock it. In this scenario we have a condition to go to the next state depending  whether the passcode is valid or not. Follow the graph below representing it:
 
-```mermaid
-stateDiagram-v2
-    direction LR
-    [*] --> locked
-    state if_state <<choice>>
-    locked --> if_state : unlock
-    if_state --> locked : false
-    if_state --> unlocked : true
-```
+![state-machine-diagram](./assets/check-passcode.png)
 
 In order to have this condition to the `unlock` event use the `event` macro passing the `guard` option with a function to evaluate it:
 
