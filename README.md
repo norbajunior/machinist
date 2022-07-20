@@ -84,9 +84,6 @@ iex> Door.transit(door_opened, event: "lock")
 {:error, :not_allowed}
 ```
 
-This is an option for a better organization and an increase of readability when having
-a large number of `from` definitions with a same state.
-
 ## Guard conditions
 
 We could implement a state machine for an eletronic door by having to validate the passcode to unlock it. In this scenario we should have a condition to change the state based on if the passcode is valid or not. Check out the diagram below representing it:
