@@ -162,7 +162,7 @@ defmodule SelectionProcess.V1 do
 
   alias SelectionProcess.Candidate
 
-  @minimum_score 100
+  @minimum_score 70
 
   transitions Candidate do
     from :new,           to: :registered,    event: "register"
