@@ -86,11 +86,13 @@ iex> Door.transit(door_opened, event: "lock")
 
 ## Guard conditions
 
-We also could be implementing a state machine for an eletronic door which should validate the passcode to unlock it. In this scenario we should have a condition to change the state based on the passcode is valid or not. Check out the diagram below representing it:
+We also could be implementing a state machine for an eletronic door which should validate the passcode to unlock it. In this scenario the `machinist` give us the possibility to provide a function to evaluate a condition and return the new state.
+
+Check out the diagram below representing it:
 
 ![state-machine-diagram](./assets/check-passcode.png)
 
-In order to have this condition to the `unlock` event use the `event` macro passing the `guard` option with a one-arity function:
+And in order to have this condition for the `unlock` event use the `event` macro passing the `guard` option with a one-arity function:
 
 ```elixir
 # ..
@@ -106,7 +108,7 @@ defp check_passcode(door) do
 end
 ```
 
-So when we call `Door.transit(%Door{state: :locked}, event: "unlock")` the guard function `check_passcode/1` will be called with the struct door as parameter and it will return the new state to be set.
+So when we call `Door.transit(%Door{state: :locked}, event: "unlock")` the guard function `check_passcode/1` will be called with the struct door as the first parameter and returns the new state to be set.
 
 ### Setting a different attribute name that holds the state
 
