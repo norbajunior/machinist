@@ -86,7 +86,7 @@ iex> Door.transit(door_opened, event: "lock")
 
 ## Guard conditions
 
-We could implement a state machine for an eletronic door by having to validate the passcode to unlock it. In this scenario we should have a condition to change the state based on if the passcode is valid or not. Check out the diagram below representing it:
+We also could be implementing a state machine for an eletronic door which should validate the passcode to unlock it. In this scenario we should have a condition to change the state based on the passcode is valid or not. Check out the diagram below representing it:
 
 ![state-machine-diagram](./assets/check-passcode.png)
 
