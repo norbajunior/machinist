@@ -125,7 +125,7 @@ defmodule Machinist do
         from :test, to: :reproved
       end
 
-      defp check_passcode(%Door{score: score}) do
+      defp check_score(%{score: score}) do
         if score >= 70, do: :approved, else: :reproved
       end
   """

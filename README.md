@@ -86,7 +86,7 @@ iex> Door.transit(door_opened, event: "lock")
 
 ## Guard conditions
 
-We also could be implementing a state machine for an eletronic door which should validate the passcode to unlock it. In this scenario the `machinist` give us the possibility to provide a function to evaluate a condition and return the new state.
+We also could be implementing a state machine for an eletronic door which should validate a passcode to unlock it. In this scenario the `machinist` gives us the possibility to provide a function to evaluate a condition and return the new state.
 
 Check out the diagram below representing it:
 
