@@ -314,11 +314,7 @@ defmodule MachinistTest do
           end
 
           defp which_interview(%Example9{score: score}) do
-            if score >= 70 do
-              :interview_1
-            else
-              :interview_2
-            end
+            if score >= 70, do: :interview_1, else: :interview_2
           end
         end
       end
@@ -352,11 +348,7 @@ defmodule MachinistTest do
           end
 
           defp which_interview(%Example10{score: score}) do
-            if score >= 70 do
-              :interview_1
-            else
-              :interview_2
-            end
+            if score >= 70, do: :interview_1, else: :interview_2
           end
         end
       end
