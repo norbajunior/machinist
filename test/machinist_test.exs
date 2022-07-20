@@ -1,6 +1,5 @@
 defmodule MachinistTest do
   use ExUnit.Case, async: true
-  # doctest Machinist
 
   describe "a default example" do
     defmodule Example1 do
@@ -217,8 +216,7 @@ defmodule MachinistTest do
     end
 
     test "transits from new to form" do
-      assert {:ok, %Example7{state: :form}} =
-               Example7.transit(%Example7{}, event: "start")
+      assert {:ok, %Example7{state: :form}} = Example7.transit(%Example7{}, event: "start")
     end
 
     test "transits from form to form2" do
@@ -251,13 +249,14 @@ defmodule MachinistTest do
   describe "an example of a from block within an event block" do
     @error_message """
 
-    \e[0m`event` block can't support `from` blocks inside
+    \e[0m`event` block can't support `from` blocks inside anymore
 
     Instead of this:
 
     from(:tests_approved) do
       to(:interview_1)
-      to(:interview_2)\nend
+      to(:interview_2)
+    end
 
     Do this:
 
@@ -279,6 +278,84 @@ defmodule MachinistTest do
                 to(:interview_1)
                 to(:interview_2)
               end
+            end
+          end
+
+          defp which_interview(example8) do
+            :interview_1
+          end
+        end
+      end
+    end
+  end
+
+  describe "an example of a :to option with a func as an unsupported value" do
+    @error_message """
+
+    \e[0m`from` macro does not accept a function as a value to `:to` anymore
+
+    Instead use the `event` macro passing the function as a guard option:
+
+    event "start_interview", guard: &which_interview/1 do
+      from :score_updated, to: :your_new_state
+    end
+
+    """
+
+    test "raises an error when using this deprecated form" do
+      assert_raise Machinist.NoLongerSupportedSyntaxError, @error_message, fn ->
+        defmodule Example9 do
+          defstruct score: 0, state: :new
+
+          use Machinist
+
+          transitions do
+            from(:score_updated, to: &which_interview/1, event: "start_interview")
+          end
+
+          defp which_interview(%Example9{score: score}) do
+            if score >= 70 do
+              :interview_1
+            else
+              :interview_2
+            end
+          end
+        end
+      end
+    end
+  end
+
+  describe "an example of a `from` block with a :to option with a func as an unsupported value" do
+    @error_message """
+
+    \e[0m`from` macro does not accept a function as a value to `:to` anymore
+
+    Instead use the `event` macro passing the function as a guard option:
+
+    event "start_interview", guard: &which_interview/1 do
+      from :score_updated, to: :your_new_state
+    end
+
+    """
+
+    test "raises an error when using this deprecated form" do
+      assert_raise Machinist.NoLongerSupportedSyntaxError, @error_message, fn ->
+        defmodule Example10 do
+          defstruct score: 0, state: :new
+
+          use Machinist
+
+          transitions do
+            from :score_updated do
+              to(&which_interview/1, event: "start_interview")
+            end
+          end
+
+          defp which_interview(%Example10{score: score}) do
+            if score >= 70 do
+              :interview_1
+            else
+              :interview_2
             end
           end
         end

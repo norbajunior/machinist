@@ -89,11 +89,11 @@ a large number of `from` definitions with a same state.
 
 ## Guard conditions
 
-We could implement a state machine for an eletronic door by having to validate the passcode to unlock it. In this scenario we should have a condition to go to the next state based whether the passcode is valid or not. Follow the graph below representing it:
+We could implement a state machine for an eletronic door by having to validate the passcode to unlock it. In this scenario we should have a condition to change the state based on if the passcode is valid or not. Check out the diagram below representing it:
 
 ![state-machine-diagram](./assets/check-passcode.png)
 
-In order to have this condition to the `unlock` event use the `event` macro passing the `guard` option with a one-arity function to evaluate it:
+In order to have this condition to the `unlock` event use the `event` macro passing the `guard` option with a one-arity function:
 
 ```elixir
 # ..
