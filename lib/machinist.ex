@@ -118,8 +118,7 @@ defmodule Machinist do
 
   @doc """
   Defines an `event` block grouping a same-event `from` -> `to` transitions
-  with a guard function that should evaluates a condition and returns the
-  next state.
+  with a guard function that should evaluates a condition and returns a new state.
 
       event "update_score"", guard: &check_score/1 do
         from :test, to: :approved
