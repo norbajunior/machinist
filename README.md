@@ -56,8 +56,6 @@ def transit(%Door{state: :locked} = struct, event: "unlock") do
 end
 ```
 
-_The functions `transit/2` implements the behaviour_ `Machinist.Transition`
-
 So that we can transit between states by relying on the **state** + **event**
 pattern matching.
 
@@ -86,29 +84,33 @@ iex> Door.transit(door_opened, event: "lock")
 {:error, :not_allowed}
 ```
 
-### Group same-state `from` definitions
+## Guard conditions
 
-In the example above we could group the `from :unlocked` definitions like this:
+We also could be implementing a state machine for an eletronic door which should validate a passcode to unlock it. In this scenario the `machinist` gives us the possibility to provide a function to evaluate a condition and return the new state.
+
+Check out the diagram below representing it:
+
+![state-machine-diagram](./assets/check-passcode.png)
+
+And in order to have this condition for the `unlock` event use the `event` macro passing the `guard` option with a one-arity function:
 
 ```elixir
-# ...
+# ..
 transitions do
-  from :locked, to: :unlocked, event: "unlock"
-  from :unlocked do
-    to :locked, event: "lock"
-    to :opened, event: "open"
+  event "unlock", guard: &check_passcode/1 do
+    from :locked, to: :unlocked
+    from :locked, to: :locked
   end
-  from :opened, to: :closed,   event: "close"
-  from :closed, to: :opened,   event: "open"
-  from :closed, to: :locked,   event: "lock"
 end
-# ...
+
+defp check_passcode(door) do
+  if some_condition, do: :unlocked, else: :locked
+end
 ```
 
-This is an option for a better organization and an increase of readability when having
-a large number of `from` definitions with a same state.
+So when we call `Door.transit(%Door{state: :locked}, event: "unlock")` the guard function `check_passcode/1` will be called with the struct door as the first parameter and returns the new state to be set.
 
-### Setting different attribute name that holds the state
+### Setting a different attribute name that holds the state
 
 By default `machinist` expects the struct being updated holds a `state`
 attribute, if you hold state in a different attribute, just pass the name as an
@@ -162,13 +164,18 @@ defmodule SelectionProcess.V1 do
 
   alias SelectionProcess.Candidate
 
-  @minimum_score 100
+  @minimum_score 70
 
   transitions Candidate do
     from :new,           to: :registered,    event: "register"
     from :registered,    to: :started_test,  event: "start_test"
-    from :started_test,  to: &check_score/1, event: "send_test"
-    from :approved,      to: :enrolled,      event: "enroll"
+
+    event "send_test", guard: &check_score/1 do
+      from :started_test, to: :approved
+      from :started_test, to: :reroved
+    end
+
+    from :approved, to: :enrolled, event: "enroll"
   end
 
   defp check_score(%Candidate{test_score: score}) do
