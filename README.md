@@ -257,6 +257,31 @@ defmodule SelectionProcess.V2 do
 end
 ```
 
+### Code formatter
+
+Elixir formatter (`mix format`) put parenthesis around the macros
+
+```elixir
+from(:some_state, to: :another, event: "some_event")
+
+from :some_state do
+  to(:another, event: "some_event")
+end
+```
+
+However machinist's `.formatter.exs` is configured to not use parenthesis. In order to follow the code style without parenthesis you can export the machinist config in your project.
+
+In your `.formatter.exs` file just add:
+
+```elixir
+[
+  # ...
+  import_deps: [:machinist]
+]
+```
+
+And you're good to go 🧙‍♀️.
+
 ## How does the DSL works?
 
 The use of `transitions` in combination with each `from` statement will be
