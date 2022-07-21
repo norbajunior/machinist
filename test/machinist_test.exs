@@ -9,8 +9,8 @@ defmodule MachinistTest do
       use Machinist
 
       transitions do
-        from(1, to: 2, event: "next")
-        from(2, to: 3, event: "next")
+        from 1, to: 2, event: "next"
+        from 2, to: 3, event: "next"
       end
     end
 
@@ -29,8 +29,8 @@ defmodule MachinistTest do
       use Machinist
 
       transitions attr: :step do
-        from(1, to: 2, event: "next")
-        from(2, to: 3, event: "next")
+        from 1, to: 2, event: "next"
+        from 2, to: 3, event: "next"
       end
     end
 
@@ -53,8 +53,8 @@ defmodule MachinistTest do
       use Machinist
 
       transitions Candidate do
-        from(:new, to: :registered, event: "register")
-        from(:registered, to: :enrolled, event: "enroll")
+        from :new, to: :registered, event: "register"
+        from :registered, to: :enrolled, event: "enroll"
       end
     end
 
@@ -64,9 +64,9 @@ defmodule MachinistTest do
       use Machinist
 
       transitions Candidate do
-        from(:new, to: :registered, event: "register")
-        from(:registered, to: :interviewed, event: "interviewed")
-        from(:interviewed, to: :enrolled, event: "enroll")
+        from :new, to: :registered, event: "register"
+        from :registered, to: :interviewed, event: "interviewed"
+        from :interviewed, to: :enrolled, event: "enroll"
       end
     end
 
@@ -112,7 +112,7 @@ defmodule MachinistTest do
       use Machinist
 
       transitions User, attr: :step do
-        from(1, to: 2, event: "next")
+        from 1, to: 2, event: "next"
       end
     end
 
@@ -129,16 +129,16 @@ defmodule MachinistTest do
       use Machinist
 
       transitions do
-        from(:new, to: :registered, event: "register")
-        from(:registered, to: :interview_scheduled, event: "schedule_interview")
+        from :new, to: :registered, event: "register"
+        from :registered, to: :interview_scheduled, event: "schedule_interview"
 
         from :interview_scheduled do
-          to(:approved, event: "approve_interview")
-          to(:repproved, event: "reprove_interview")
+          to :approved, event: "approve_interview"
+          to :repproved, event: "reprove_interview"
         end
 
-        from(:approved, to: :enrolled, event: "enroll")
-        from(_state, to: :application_expired, event: "application_expired")
+        from :approved, to: :enrolled, event: "enroll"
+        from _state, to: :application_expired, event: "application_expired"
       end
     end
 
@@ -167,9 +167,9 @@ defmodule MachinistTest do
         from(:test, to: :test1, event: "test1")
 
         from :test1 do
-          to(:test2, event: "test2")
-          to(:test3, event: "test3")
-          to(:test4, event: "test4")
+          to :test2, event: "test2"
+          to :test3, event: "test3"
+          to :test4, event: "test4"
         end
       end
     end
