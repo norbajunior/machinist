@@ -10,7 +10,7 @@ jobs:
   build:
 
     name: Build and test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     env:
       MIX_ENV: test
     strategy:
@@ -21,7 +21,7 @@ jobs:
               elixir: 1.6.6
               otp: 19.3.6.13
           - pair:
-              elixir: 1.14.0
+              elixir: 1.13.4
               otp: 25.0.2
             lint: lint
     steps:
