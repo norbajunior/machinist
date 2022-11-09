@@ -354,4 +354,41 @@ defmodule MachinistTest do
       end
     end
   end
+
+  describe "an example of transitions using :guard option" do
+    defmodule Example11 do
+      defstruct state: :created
+
+      use Machinist
+
+      transitions do
+        from(:created,
+          to: :awaiting_confirmation,
+          guard: &send_confirmation/1,
+          event: "activate"
+        )
+
+        from(:awaiting_confirmation,
+          to: :confirmed,
+          guard: &was_confirmed?/1,
+          event: "activate"
+        )
+
+        from(:confirmed,
+          to: :active,
+          event: "activate"
+        )
+      end
+
+      def send_confirmation(_current_state), do: true
+
+      def was_confirmed?(_current_state), do: false
+    end
+
+    test "all transitions" do
+      {:ok, %Example11{state: :awaiting_confirmation} = current_state} = Example11.transit(%Example11{}, event: "activate")
+
+      {:error, :not_allowed} = Example11.transit(current_state, event: "activate")
+    end
+  end
 end

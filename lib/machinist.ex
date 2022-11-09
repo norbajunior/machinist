@@ -173,6 +173,11 @@ defmodule Machinist do
   It's also possible to define a `from` any state transition to another specific one, by just passing an underscore variable in place of a real state value
 
       from _state, to: :expired, event: "enrollment_expired"
+
+  It's also possible to define a transition `guard`, that should return boolean values, to evaluates if the resource can transit between states
+
+      from 1, to: 2, guard: fn resource -> resource.state == 1 end, event: "next"
+
   """
   defmacro from(state, do: {_, _line, to_statements}) do
     define_transitions(state, to_statements)
@@ -187,6 +192,10 @@ defmodule Machinist do
 
   defmacro from(state, to: new_state, event: event) do
     define_transition(state, to: new_state, event: event)
+  end
+
+  defmacro from(state, to: new_state, guard: guard, event: event) do
+    define_transition(state, to: new_state, guard: guard, event: event)
   end
 
   defp prepare_transitions(_event, []), do: []
@@ -234,12 +243,27 @@ defmodule Machinist do
     end
   end
 
+  defp define_transition(state, to: new_state, guard: guard, event: event) do
+    quote do
+      @impl true
+      def transit(%@__struct__{@__attr__ => unquote(state)} = resource, event: unquote(event)) do
+        if unquote(guard).(unquote(state)) do
+          value = __set_new_state__(resource, unquote(new_state))
+
+          {:ok, Map.put(resource, @__attr__, value)}
+        else
+          {:error, :not_allowed}
+        end
+      end
+    end
+  end
+
   defmacro __before_compile__(_) do
     quote do
       @impl true
-      def transit(_resource, _opts) do
-        {:error, :not_allowed}
-      end
+      def transit(_resource, _opts), do: __keep_state__()
+
+      defp __keep_state__, do: {:error, :not_allowed}
 
       defp __set_new_state__(resource, new_state) do
         if is_function(new_state) do
