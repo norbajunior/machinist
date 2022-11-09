@@ -247,13 +247,11 @@ defmodule Machinist do
     quote do
       @impl true
       def transit(%@__struct__{@__attr__ => unquote(state)} = resource, event: unquote(event)) do
-        if unquote(guard).(unquote(state)) do
-          value = __set_new_state__(resource, unquote(new_state))
+        should_transit? = unquote(guard).(unquote(state))
 
-          {:ok, Map.put(resource, @__attr__, value)}
-        else
-          {:error, :not_allowed}
-        end
+        if should_transit?,
+          do: __transit_state__(resource, unquote(new_state)),
+          else: __keep_state__()
       end
     end
   end
@@ -264,6 +262,10 @@ defmodule Machinist do
       def transit(_resource, _opts), do: __keep_state__()
 
       defp __keep_state__, do: {:error, :not_allowed}
+
+      defp __transit_state__(%_{} = resource, new_state) do
+        {:ok, Map.put(resource, @__attr__, new_state)}
+      end
 
       defp __set_new_state__(resource, new_state) do
         if is_function(new_state) do

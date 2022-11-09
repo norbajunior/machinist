@@ -386,7 +386,8 @@ defmodule MachinistTest do
     end
 
     test "all transitions" do
-      {:ok, %Example11{state: :awaiting_confirmation} = current_state} = Example11.transit(%Example11{}, event: "activate")
+      {:ok, %Example11{state: :awaiting_confirmation} = current_state} =
+        Example11.transit(%Example11{}, event: "activate")
 
       {:error, :not_allowed} = Example11.transit(current_state, event: "activate")
     end
