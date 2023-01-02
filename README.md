@@ -172,7 +172,7 @@ defmodule SelectionProcess.V1 do
 
     event "send_test", guard: &check_score/1 do
       from :started_test, to: :approved
-      from :started_test, to: :reroved
+      from :started_test, to: :reproved
     end
 
     from :approved, to: :enrolled, event: "enroll"
