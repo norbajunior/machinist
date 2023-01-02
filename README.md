@@ -3,7 +3,7 @@
 [![CI](https://github.com/norbajunior/machinist/actions/workflows/ci.yml/badge.svg)](https://github.com/norbajunior/machinist/actions/workflows/ci.yml)
 [![Hex.pm Version](https://img.shields.io/hexpm/v/machinist?color=blueviolet)](https://hex.pm/packages/machinist)
 
-This is a small library that allows you to implement finite state machines
+This small library allows you to implement finite-state machines
 with Elixir in a simple way. It provides a simple DSL to write combinations of
 transitions based on events.
 
@@ -17,7 +17,7 @@ You can install `machinist` by adding it  to your list of dependencies in `mix.e
 ```elixir
 def deps do
   [
-    {:machinist, "~> 0.5.3"}
+    {:machinist, "~> 1.0.0"}
   ]
 end
 ```
@@ -46,8 +46,8 @@ defmodule Door do
 end
 ```
 
-By defining this rules with `transitions` and `from` macros, `machinist`
-generates and inject into the module `Door` `transit/2` functions like this
+By defining these rules with `transitions` and `from` macros, `machinist`
+generates and injects into the module `Door` `transit/2` functions like this
 one:
 
 ```elixir
@@ -56,14 +56,12 @@ def transit(%Door{state: :locked} = struct, event: "unlock") do
 end
 ```
 
-_The functions `transit/2` implements the behaviour_ `Machinist.Transition`
-
 So that we can transit between states by relying on the **state** + **event**
 pattern matching.
 
 Let's see this in practice:
 
-By default our `Door` is `locked`:
+By default, our `Door` is `locked`:
 
 ```elixir
 iex> door_locked = %Door{}
@@ -79,39 +77,43 @@ iex> {:ok, door_opened} = Door.transit(door_unlocked, event: "open")
 {:ok, %Door{state: :opened}}
 ```
 
-If we try to make a transition that not follow the rules, we got an error:
+If we try to make a transition that does not follow the rules, we get an error:
 
 ```elixir
 iex> Door.transit(door_opened, event: "lock")
 {:error, :not_allowed}
 ```
 
-### Group same-state `from` definitions
+## Guard conditions
 
-In the example above we could group the `from :unlocked` definitions like this:
+We could also implement a state machine for an electronic door which should validate a passcode to unlock it. In this scenario, the `machinist` allows us to provide a function to evaluate a condition and return the new state.
+
+Check out the diagram below representing it:
+
+![state-machine-diagram](./assets/check-passcode.png)
+
+And to have this condition for the `unlock` event, use the `event` macro passing the `guard` option with a one-arity function:
 
 ```elixir
-# ...
+# ..
 transitions do
-  from :locked, to: :unlocked, event: "unlock"
-  from :unlocked do
-    to :locked, event: "lock"
-    to :opened, event: "open"
+  event "unlock", guard: &check_passcode/1 do
+    from :locked, to: :unlocked
+    from :locked, to: :locked
   end
-  from :opened, to: :closed,   event: "close"
-  from :closed, to: :opened,   event: "open"
-  from :closed, to: :locked,   event: "lock"
 end
-# ...
+
+defp check_passcode(door) do
+  if some_condition, do: :unlocked, else: :locked
+end
 ```
 
-This is an option for a better organization and an increase of readability when having
-a large number of `from` definitions with a same state.
+So when we call `Door.transit(%Door{state: :locked}, event: "unlock")` the guard function `check_passcode/1` will be called with the struct door as the first parameter and returns the new state to be set.
 
-### Setting different attribute name that holds the state
+### Setting a different attribute name that holds the state
 
-By default `machinist` expects the struct being updated holds a `state`
-attribute, if you hold state in a different attribute, just pass the name as an
+By default, `machinist` expects the struct being updated to hold a `state`
+attribute, if you have state in a different attribute, pass the name as an
 atom, as follows:
 
 ```elixir
@@ -120,7 +122,7 @@ transitions attr: :door_state do
 end
 ```
 
-And then `machinist` will set state in that attribute
+And then `machinist` will set the state in that attribute.
 
 ```elixir
 iex> Door.transit(door, event: "unlock")
@@ -130,7 +132,7 @@ iex> Door.transit(door, event: "unlock")
 ### Implementing different versions of a state machine
 
 Let's suppose we want to build a selection process app that handles
-applications of candidates and they may possibly going through different
+applications of candidates, and they may go through different
 versions of the process. For example:
 
 A Selection Process **V1** with the following sequence of stages:
@@ -152,7 +154,7 @@ end
 
 And a `SelectionProcess` module that implements the state machine. Notice this
 time we don't want to implement the rules in the module that holds the state,
-in this case it makes more sense the `SelectionProcess` keep the rules, also
+in this case, it makes more sense for the `SelectionProcess` to keep the rules, also
 because we want more than one state machine version handling candidates as
 mentioned before. This is our **V1** of the process:
 
@@ -162,13 +164,18 @@ defmodule SelectionProcess.V1 do
 
   alias SelectionProcess.Candidate
 
-  @minimum_score 100
+  @minimum_score 70
 
   transitions Candidate do
     from :new,           to: :registered,    event: "register"
     from :registered,    to: :started_test,  event: "start_test"
-    from :started_test,  to: &check_score/1, event: "send_test"
-    from :approved,      to: :enrolled,      event: "enroll"
+
+    event "send_test", guard: &check_score/1 do
+      from :started_test, to: :approved
+      from :started_test, to: :reproved
+    end
+
+    from :approved, to: :enrolled, event: "enroll"
   end
 
   defp check_score(%Candidate{test_score: score}) do
@@ -177,7 +184,7 @@ defmodule SelectionProcess.V1 do
 end
 ```
 
-In this code we pass the `Candidate` module as a parameter to `transitions` to
+In this code, we pass the `Candidate` module as a parameter to `transitions` to
 tell `machinist` that we expect `V1.transit/2` functions with a `%Candidate{}`
 struct as first argument and not the `%SelectionProcess.V1{}` which would be by
 default.
@@ -189,10 +196,10 @@ end
 ```
 
 Also notice we provided the *function* `&check_score/1` to the option `to:`
-instead of an *atom*, in order to decide the state based on the candidate
+instead of an *atom*, to decide the state based on the candidate
 `test_score` value.
 
-In the **version 2**, we replaced the `Code Test` stage by the `Interview`
+In **version 2**, we replaced the `Code Test` stage with the `Interview`
 which has different state transitions:
 
 ```elixir
@@ -211,9 +218,9 @@ defmodule SelectionProcess.V2 do
 end
 ```
 
-Now let's see how this could be used:
+Now let's see how we can test it:
 
-**V1:** A `registered` candidate wants to start its test.
+**V1:** A `registered` candidate wants to start his test.
 
 ```elixir
 iex> candidate1 = %Candidate{name: "Ada", state: :registered}
@@ -239,10 +246,10 @@ which one is better.
 
 Sometimes we need to define a `from` _any state_ transition.
 
-Still in the selection process example, a candidate can abandon the process in
-a given state and we want to be able to transit him/her to
-`application_expired` from any state. To do so we just define a `from` with an
-underscore variable in order the current state to be ignored.
+Still, in the selection process example, candidates can abandon the process in
+a given state, and we want to be able to transit them to
+`application_expired` from any state. To do so, we just define a `from` with an
+underscore variable for the current state to be ignored.
 
 ```elixir
 defmodule SelectionProcess.V2 do
@@ -256,6 +263,31 @@ defmodule SelectionProcess.V2 do
   end
 end
 ```
+
+### Code formatter
+
+Elixir formatter (`mix format`) puts parenthesis around the macros.
+
+```elixir
+from(:some_state, to: :another, event: "some_event")
+
+from :some_state do
+  to(:another, event: "some_event")
+end
+```
+
+However, the machinist's`.formatter.exs` is configured to not use parenthesis. In order to follow the code style without parenthesis you can export the machinist config in your project.
+
+In your `.formatter.exs` file, just add the following:
+
+```elixir
+[
+  # ...
+  import_deps: [:machinist]
+]
+```
+
+And you're good to go 🧙‍♀️.
 
 ## How does the DSL works?
 
@@ -282,7 +314,7 @@ defmodule Door do
 end
 ```
 
-Is the same as:
+It is the same as:
 
 ```elixir
 defmodule Door do
@@ -332,7 +364,7 @@ just open an issue or a PR.
 
 ## Donate
 
-If this project help you reduce time to develop, you can give me a cup of coffee :)
+If this project helps you reduce time to develop, you can give me a cup of coffee :)
 
 <a href="https://www.paypal.com/donate/?hosted_button_id=LVPBU9CT3Z7DN" target="_blank">
   <img src="assets/donate-btn.svg" height="40">
