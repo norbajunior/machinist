@@ -188,17 +188,17 @@ defmodule MachinistTest do
       use Machinist
 
       transitions do
-        from(:new, to: :form, event: "start")
+        from :new, to: :form, event: "start"
 
         event "form_submitted" do
-          from(:form, to: :form2)
-          from(:form2, to: :tests_in_progress)
+          from :form, to: :form2
+          from :form2, to: :tests_in_progress
         end
 
         event "update_test_score", guard: &check_status/1 do
-          from(:tests_in_progress, to: :tests_in_progress)
-          from(:tests_in_progress, to: :tests_reproved)
-          from(:tests_in_progress, to: :tests_approved)
+          from :tests_in_progress, to: :tests_in_progress
+          from :tests_in_progress, to: :tests_reproved
+          from :tests_in_progress, to: :tests_approved
         end
       end
 
@@ -275,8 +275,8 @@ defmodule MachinistTest do
           transitions do
             event "start_interview", guard: &which_interview/1 do
               from :tests_approved do
-                to(:interview_1)
-                to(:interview_2)
+                to :interview_1
+                to :interview_2
               end
             end
           end
@@ -310,7 +310,7 @@ defmodule MachinistTest do
           use Machinist
 
           transitions do
-            from(:score_updated, to: &which_interview/1, event: "start_interview")
+            from :score_updated, to: &which_interview/1, event: "start_interview"
           end
 
           defp which_interview(%Example9{score: score}) do
@@ -347,9 +347,11 @@ defmodule MachinistTest do
             end
           end
 
-          defp which_interview(%Example10{score: score}) do
-            if score >= 70, do: :interview_1, else: :interview_2
+          defp which_interview(%Example10{score: score}) when score >= 70 do
+            :interview_1
           end
+
+          defp which_interview(_), do: :interview_2
         end
       end
     end
