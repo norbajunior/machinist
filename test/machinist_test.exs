@@ -195,7 +195,7 @@ defmodule MachinistTest do
           from :form2, to: :tests_in_progress
         end
 
-        event "update_test_score", guard: &check_status/1 do
+        event "update_test_score", cond: &check_status/1 do
           from :tests_in_progress, to: :tests_in_progress
           from :tests_in_progress, to: :tests_reproved
           from :tests_in_progress, to: :tests_approved
@@ -273,7 +273,7 @@ defmodule MachinistTest do
           use Machinist
 
           transitions do
-            event "start_interview", guard: &which_interview/1 do
+            event "start_interview", cond: &which_interview/1 do
               from :tests_approved do
                 to :interview_1
                 to :interview_2
@@ -294,9 +294,9 @@ defmodule MachinistTest do
 
     \e[0m`from` macro does not accept a function as a value to `:to` anymore
 
-    Instead use the `event` macro passing the function as a guard option:
+    Instead, use the `event` macro passing the function as a `:cond` option:
 
-    event "start_interview", guard: &which_interview/1 do
+    event "start_interview", cond: &which_interview/1 do
       from :score_updated, to: :your_new_state
     end
 
@@ -326,9 +326,9 @@ defmodule MachinistTest do
 
     \e[0m`from` macro does not accept a function as a value to `:to` anymore
 
-    Instead use the `event` macro passing the function as a guard option:
+    Instead, use the `event` macro passing the function as a `:cond` option:
 
-    event "start_interview", guard: &which_interview/1 do
+    event "start_interview", cond: &which_interview/1 do
       from :score_updated, to: :your_new_state
     end
 
