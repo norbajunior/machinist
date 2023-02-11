@@ -211,7 +211,7 @@ defmodule MachinistTest do
       end
 
       defp check_status(%Example7{status: :in_progress}) do
-        :tests_in_progress
+        {:error, "The test is in progress yet."}
       end
     end
 
@@ -241,7 +241,7 @@ defmodule MachinistTest do
     test "transits from test_in_progress to test_in_progress" do
       example = %Example7{state: :tests_in_progress, status: :in_progress}
 
-      assert {:ok, %Example7{state: :tests_in_progress}} =
+      assert {:error, "The test is in progress yet."} =
                Example7.transit(example, event: "update_test_score")
     end
   end

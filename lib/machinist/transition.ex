@@ -3,5 +3,5 @@ defmodule Machinist.Transition do
   `Machinist.Transition` module behaviour
   """
   @callback transit(struct(), event: String.t()) ::
-              {:ok, struct()} | {:error, :not_allowed}
+              {:ok, struct()} | {:error, :not_allowed | String.t()}
 end

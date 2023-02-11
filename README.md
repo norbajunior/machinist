@@ -17,7 +17,7 @@ You can install `machinist` by adding it  to your list of dependencies in `mix.e
 ```elixir
 def deps do
   [
-    {:machinist, "~> 2.1.0"}
+    {:machinist, "~> 2.2.0"}
   ]
 end
 ```
@@ -104,11 +104,15 @@ transitions do
 end
 
 defp check_passcode(door) do
-  if some_condition, do: :unlocked, else: :locked
+  if some_condition do
+    :unlocked
+  else
+    {:error, "invalid passcode"}
+  end
 end
 ```
 
-So when we call `Door.transit(%Door{state: :locked}, event: "unlock")` the guard function `check_passcode/1` will be called with the struct door as the first parameter and returns the new state to be set.
+So when we call `Door.transit(%Door{state: :locked}, event: "unlock")` the guard function `check_passcode/1` will be called with the struct door as the first parameter and returns the new state to be set or a transition error tuple.
 
 ### Setting a different attribute name that holds the state
 

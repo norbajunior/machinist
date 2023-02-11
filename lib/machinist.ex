@@ -227,9 +227,10 @@ defmodule Machinist do
     quote do
       @impl true
       def transit(%@__struct__{@__attr__ => unquote(state)} = resource, event: unquote(event)) do
-        value = __set_new_state__(resource, unquote(new_state))
-
-        {:ok, Map.put(resource, @__attr__, value)}
+        case __set_new_state__(resource, unquote(new_state)) do
+          {:error, _msg} = term -> term
+          new_state -> {:ok, Map.put(resource, @__attr__, new_state)}
+        end
       end
     end
   end
