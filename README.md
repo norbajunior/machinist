@@ -17,7 +17,7 @@ You can install `machinist` by adding it  to your list of dependencies in `mix.e
 ```elixir
 def deps do
   [
-    {:machinist, "~> 2.0.0"}
+    {:machinist, "~> 1.0.0"}
   ]
 end
 ```
@@ -84,7 +84,7 @@ iex> Door.transit(door_opened, event: "lock")
 {:error, :not_allowed}
 ```
 
-## Conditions
+## Guard conditions
 
 We could also implement a state machine for an electronic door which should validate a passcode to unlock it. In this scenario, the `machinist` allows us to provide a function to evaluate a condition and return the new state.
 
@@ -92,12 +92,12 @@ Check out the diagram below representing it:
 
 ![state-machine-diagram](./assets/check-passcode.png)
 
-And to have this condition for the `unlock` event, use the `event` macro passing the `cond` option with a one-arity function:
+And to have this condition for the `unlock` event, use the `event` macro passing the `guard` option with a one-arity function:
 
 ```elixir
 # ..
 transitions do
-  event "unlock", cond: &check_passcode/1 do
+  event "unlock", guard: &check_passcode/1 do
     from :locked, to: :unlocked
     from :locked, to: :locked
   end
@@ -108,7 +108,7 @@ defp check_passcode(door) do
 end
 ```
 
-So when we call `Door.transit(%Door{state: :locked}, event: "unlock")` the function `check_passcode/1` will be called with the struct door as the first parameter and returns the new state to be set.
+So when we call `Door.transit(%Door{state: :locked}, event: "unlock")` the guard function `check_passcode/1` will be called with the struct door as the first parameter and returns the new state to be set.
 
 ### Setting a different attribute name that holds the state
 
@@ -170,7 +170,7 @@ defmodule SelectionProcess.V1 do
     from :new,           to: :registered,    event: "register"
     from :registered,    to: :started_test,  event: "start_test"
 
-    event "send_test", cond: &check_score/1 do
+    event "send_test", guard: &check_score/1 do
       from :started_test, to: :approved
       from :started_test, to: :reproved
     end

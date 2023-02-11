@@ -118,9 +118,9 @@ defmodule Machinist do
 
   @doc """
   Defines an `event` block grouping a same-event `from` -> `to` transitions
-  with a cond option that should receive a function that returns a new state.
+  with a guard function that should evaluates a condition and returns a new state.
 
-      event "update_score"", cond: &check_score/1 do
+      event "update_score"", guard: &check_score/1 do
         from :test, to: :approved
         from :test, to: :reproved
       end
@@ -129,7 +129,7 @@ defmodule Machinist do
         if score >= 70, do: :approved, else: :reproved
       end
   """
-  defmacro event(event, [cond: func], do: {:__block__, line, content}) do
+  defmacro event(event, [guard: func], do: {:__block__, line, content}) do
     content = prepare_transitions(event, func, content)
 
     quote bind_quoted: [content: content, line: line] do
@@ -195,16 +195,16 @@ defmodule Machinist do
     [prepare_transition(event, head) | prepare_transitions(event, tail)]
   end
 
-  defp prepare_transitions(event, cond_func, [head | _]) do
-    prepare_transition(event, cond_func, head)
+  defp prepare_transitions(event, guard_func, [head | _]) do
+    prepare_transition(event, guard_func, head)
   end
 
   defp prepare_transition(event, {:from, _line, [from, to]}) do
     define_transition(from, to ++ [event: event])
   end
 
-  defp prepare_transition(event, cond_func, {:from, _line, [from, _to]}) do
-    define_transition(from, to: cond_func, event: event)
+  defp prepare_transition(event, guard_func, {:from, _line, [from, _to]}) do
+    define_transition(from, to: guard_func, event: event)
   end
 
   defp define_transitions(_state, []), do: []
@@ -283,7 +283,7 @@ defmodule Machinist.NoLongerSupportedSyntaxError do
   @impl true
   def exception(state: state, to: new_state_func, event: event) do
     new_dsl = ~s"""
-    event "#{event}", cond: #{Macro.to_string(new_state_func)} do
+    event "#{event}", guard: #{Macro.to_string(new_state_func)} do
       from :#{state}, to: :your_new_state
     end
     """
@@ -292,7 +292,7 @@ defmodule Machinist.NoLongerSupportedSyntaxError do
 
     #{IO.ANSI.reset()}`from` macro does not accept a function as a value to `:to` anymore
 
-    Instead, use the `event` macro passing the function as a `:cond` option:
+    Instead use the `event` macro passing the function as a guard option:
 
     #{new_dsl}
     """
