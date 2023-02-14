@@ -47,7 +47,7 @@ end
 ```
 
 By defining these rules with `transitions` and `from` macros, `machinist`
-generates and injects into the module `Door` `transit/2` functions like this
+generates and injects into the module `Door`, `transit/2` functions like this
 one:
 
 ```elixir
