@@ -12,7 +12,7 @@ defmodule Machinist do
   @doc false
   defmacro __using__(_) do
     quote do
-      @__attr__ :state
+      @___attr___ :state
 
       @behaviour Machinist.Transition
 
@@ -34,7 +34,7 @@ defmodule Machinist do
   """
   defmacro transitions(do: block) do
     quote do
-      @__struct__ __MODULE__
+      @___struct___ __MODULE__
 
       unquote(block)
     end
@@ -84,8 +84,8 @@ defmodule Machinist do
 
   defmacro transitions([attr: attr], do: block) do
     quote do
-      @__attr__ unquote(attr)
-      @__struct__ __MODULE__
+      @___attr___ unquote(attr)
+      @___struct___ __MODULE__
 
       unquote(block)
     end
@@ -93,7 +93,7 @@ defmodule Machinist do
 
   defmacro transitions(struct, do: block) do
     quote do
-      @__struct__ unquote(struct)
+      @___struct___ unquote(struct)
 
       unquote(block)
     end
@@ -109,8 +109,8 @@ defmodule Machinist do
   """
   defmacro transitions(struct, [attr: attr], do: block) do
     quote do
-      @__attr__ unquote(attr)
-      @__struct__ unquote(struct)
+      @___attr___ unquote(attr)
+      @___struct___ unquote(struct)
 
       unquote(block)
     end
@@ -226,10 +226,10 @@ defmodule Machinist do
   defp define_transition(state, to: new_state, event: event) do
     quote do
       @impl true
-      def transit(%@__struct__{@__attr__ => unquote(state)} = resource, event: unquote(event)) do
+      def transit(%@___struct___{@___attr___ => unquote(state)} = resource, event: unquote(event)) do
         case __set_new_state__(resource, unquote(new_state)) do
           {:error, _msg} = term -> term
-          new_state -> {:ok, Map.put(resource, @__attr__, new_state)}
+          new_state -> {:ok, Map.put(resource, @___attr___, new_state)}
         end
       end
     end
