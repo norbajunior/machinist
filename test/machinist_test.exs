@@ -380,5 +380,4 @@ defmodule MachinistTest do
       assert {:error, :not_allowed} = Example11.transit(step_3, event: "next")
     end
   end
-
 end
