@@ -356,4 +356,28 @@ defmodule MachinistTest do
       end
     end
   end
+
+  describe "an example w/ typespec" do
+    defmodule Example11 do
+      defstruct state: 1
+
+      @type t :: %__MODULE__{
+        state: integer()
+      }
+
+      use Machinist
+
+      transitions do
+        from 1, to: 2, event: "next"
+        from 2, to: 3, event: "next"
+      end
+    end
+
+    test "all transitions" do
+      assert {:ok, %Example11{state: 2} = step_2} = Example11.transit(%Example11{}, event: "next")
+      assert {:ok, %Example11{state: 3} = step_3} = Example11.transit(step_2, event: "next")
+
+      assert {:error, :not_allowed} = Example11.transit(step_3, event: "next")
+    end
+  end
 end
