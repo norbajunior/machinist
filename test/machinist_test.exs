@@ -362,8 +362,8 @@ defmodule MachinistTest do
       defstruct state: 1
 
       @type t :: %__MODULE__{
-        state: integer()
-      }
+              state: integer()
+            }
 
       use Machinist
 
