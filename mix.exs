@@ -1,7 +1,7 @@
 defmodule Machinist.MixProject do
   use Mix.Project
 
-  @version "2.1.1"
+  @version "2.1.2"
   @repo_url "https://github.com/norbajunior/machinist"
 
   def project do
